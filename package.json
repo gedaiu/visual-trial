@@ -22,7 +22,13 @@
                     "name": "Tests"
                 }
             ]
-        }
+        },
+        "commands": [
+            {
+                "command": "goToTestSource",
+                "title": "Go to the test source"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
