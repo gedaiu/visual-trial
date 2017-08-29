@@ -20,6 +20,10 @@ export function activate(context: vscode.ExtensionContext) {
             });
         });
     });
+
+    vscode.commands.registerCommand('refreshEntry', node => {
+        trialTests.refresh(node);
+    });
 }
 
 // this method is called when your extension is deactivated

@@ -26,8 +26,9 @@ export class TestCaseTrialNode implements TrialNode {
                 command: 'goToTestSource',
                 arguments: [ this.data.location ],
                 title: 'Go to the test source'
-            }
-        };
+            },
+            contextValue: 'trialTestCase'
+       };
     }
 
     getChildren(): TrialNode[] | Thenable<TrialNode[]> {
@@ -49,8 +50,8 @@ export class SuiteTrialNode implements TrialNode {
                 light: this.context.asAbsolutePath(path.join('resources', 'light', 'suite.svg')),
                 dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'suite.svg'))
             },
-
-            collapsibleState: TreeItemCollapsibleState.Collapsed
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
+            contextValue: 'trialSuite'
         };
     }
 
@@ -76,7 +77,8 @@ export class TrialRootNode implements TrialNode {
                 light: this.context.asAbsolutePath(path.join('resources', 'light', 'package.svg')),
                 dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'package.svg'))
             },
-            collapsibleState: TreeItemCollapsibleState.Collapsed
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
+            contextValue: 'trialRoot'
         };
     }
 
@@ -100,6 +102,8 @@ export class TrialRootNode implements TrialNode {
             });
 
             trialProcess.on('close', (code) => {
+                this.testFetcher = null;
+
                 if (code !== 0) {
                     reject(`trial process exited with code ${code}`);
                 }
@@ -165,6 +169,10 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
         });
 
         return this.rootNodesFetcher;
+    }
+
+    public refresh(node: TrialNode) {
+        this._onDidChangeTreeData.fire(node);
     }
 
     public getChildren(element?: TrialNode): TrialNode[] | Thenable<TrialNode[]> {

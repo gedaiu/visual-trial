@@ -27,8 +27,24 @@
             {
                 "command": "goToTestSource",
                 "title": "Go to the test source"
+            },
+            {
+                "command": "refreshEntry",
+                "title": "Refresh",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
             }
-        ]
+        ],
+        "menus": {
+            "view/item/context": [
+                {
+                    "command": "refreshEntry",
+                    "when": "viewItem == trialRoot"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
