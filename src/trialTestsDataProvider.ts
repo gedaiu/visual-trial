@@ -27,7 +27,7 @@ export class TestCaseTrialNode implements TrialNode {
             collapsibleState: TreeItemCollapsibleState.None,
             command: {
                 command: 'goToTestSource',
-                arguments: [ this.data.location ],
+                arguments: [this.data.location],
                 title: 'Go to the test source'
             },
             contextValue: 'trialTestCase',
@@ -35,7 +35,7 @@ export class TestCaseTrialNode implements TrialNode {
                 light: this.context.asAbsolutePath(path.join('resources', 'light', 'unknown.svg')),
                 dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'unknown.svg'))
             },
-       };
+        };
     }
 
     getChildren(): TrialNode[] | Thenable<TrialNode[]> {
@@ -74,8 +74,7 @@ export class TrialRootNode implements TrialNode {
     testFetcher: Thenable<TrialNode[]>;
     subpackage: string = "";
 
-    constructor(private name: string, private projectRoot: string, private context: vscode.ExtensionContext) {
-
+    constructor(private name: string, private context: vscode.ExtensionContext, private testRunner: TestRunner) {
     }
 
     toTreeItem(): TreeItem {
@@ -96,41 +95,17 @@ export class TrialRootNode implements TrialNode {
         }
 
         this.testFetcher = new Promise((resolve, reject) => {
-            let options = ["describe"];
-
-            if (this.name.indexOf(":") === 0) {
-                options.push(this.name);
-            }
-
-            const trialProcess = ChildProcess.spawn("trial", options, { cwd: this.projectRoot });
-            let rawDescription = "";
-
-            trialProcess.stdout.on('data', (data) => {
-                rawDescription += data;
-            });
-
-            trialProcess.on('close', (code) => {
+            this.testRunner.getTests(this.subpackage).then((description: object) => {
                 this.testFetcher = null;
-
-                if (code !== 0) {
-                    reject(`trial process exited with code ${code}`);
-                }
-
-                let description: any;
-
-                try {
-                    description = JSON.parse(rawDescription);
-                } catch (e) {
-                    reject(e);
-                    return;
-                }
 
                 let items: TrialNode[] = Object.keys(description).map(a => new SuiteTrialNode(a, description[a], this.context, a.indexOf(":") === 0 ? a : ""));
 
                 resolve(items);
+            }, (err) => {
+                this.testFetcher = null;
+                reject(err);
             });
         });
-
 
         return this.testFetcher;
     }
@@ -159,10 +134,13 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
 
         this.rootNodesFetcher = new Promise((resolve, reject) => {
             this.testRunner.subpackages().then((items: string[]) => {
-                resolve(items.map(a => new TrialRootNode(a, this.projectRoot, this.context)));
+                resolve(items.map(a => new TrialRootNode(a, this.context, this.testRunner)));
 
                 this.rootNodesFetcher = null;
-            }, reject);
+            }, (err) => {
+                this.rootNodesFetcher = null;
+                reject(err);
+            });
         });
 
         return this.rootNodesFetcher;

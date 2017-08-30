@@ -2,13 +2,50 @@ import * as ChildProcess from "child_process"
 
 export default class TestRunner {
     private subpackagesPromise: Thenable<string[]>;
+    private testsPromise: Thenable<object>;
 
     constructor(private projectRoot: string) {
-
     }
 
-    subpackages() : Thenable<string[]> {
-        if(this.subpackagesPromise) {
+    getTests(subpackage: string = ""): Thenable<object> {
+        if (this.testsPromise) {
+            return this.testsPromise;
+        }
+
+        let options = ["describe"];
+
+        if (subpackage.indexOf(":") === 0) {
+            options.push(subpackage);
+        }
+
+        this.testsPromise = new Promise((resolve, reject) => {
+            const trialProcess = ChildProcess.spawn("trial", options, { cwd: this.projectRoot });
+            let rawDescription = "";
+
+            trialProcess.stdout.on('data', (data) => {
+                rawDescription += data;
+            });
+
+            trialProcess.on('close', (code) => {
+                this.testsPromise = null;
+
+                if (code !== 0) {
+                    reject(`trial process exited with code ${code}`);
+                }
+
+                try {
+                    resolve(JSON.parse(rawDescription));
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        });
+
+        return this.testsPromise;
+    }
+
+    subpackages(): Thenable<string[]> {
+        if (this.subpackagesPromise) {
             return this.subpackagesPromise;
         }
 
