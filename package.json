@@ -29,6 +29,10 @@
                 "title": "Go to the test source"
             },
             {
+                "command": "runTest",
+                "title": "Run the selected test"
+            },
+            {
                 "command": "refreshEntry",
                 "title": "Refresh",
                 "icon": {
@@ -42,6 +46,9 @@
                 {
                     "command": "refreshEntry",
                     "when": "viewItem == trialRoot"
+                }, {
+                    "command": "runTest",
+                    "when": "viewItem == trialTestCase"
                 }
             ]
         }
