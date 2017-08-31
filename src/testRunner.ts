@@ -1,4 +1,5 @@
 import * as ChildProcess from "child_process"
+import { TestCaseTrialNode } from "./trialTestsDataProvider";
 
 export default class TestRunner {
     private subpackagesPromise: Thenable<string[]>;
@@ -73,7 +74,10 @@ export default class TestRunner {
         return this.subpackagesPromise;
     }
 
-    runTest(subpackage: string, testName: string) {
+    runTest(node: TestCaseTrialNode) {
+        var subpackage = node.subpackage;
+        var testName = node.data.name;
+
         var options = [];
 
         if(subpackage.indexOf(":") === 0) {

@@ -152,7 +152,7 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     }
 
     public runTest(node: TestCaseTrialNode) {
-        this.testRunner.runTest(node.subpackage, node.data.name);
+        this.testRunner.runTest(node);
     }
 
     public getChildren(element?: TrialNode): TrialNode[] | Thenable<TrialNode[]> {
