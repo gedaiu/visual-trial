@@ -5,7 +5,7 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
-import TapParser from "../src/tapParser";
+import { TapParser } from "../src/tapParser";
 
 var oneSuccessTest = `Building package trial:lifecycle in /Users/gedaiu/workspace/trial/
 Generate main file: /Users/gedaiu/workspace/trial/generated.d
