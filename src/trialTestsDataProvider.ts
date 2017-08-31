@@ -75,6 +75,7 @@ export class TrialRootNode implements TrialNode {
     subpackage: string = "";
 
     constructor(private name: string, private context: vscode.ExtensionContext, private testRunner: TestRunner) {
+        this.subpackage = this.name.indexOf(":") === 0 ? this.name : "";
     }
 
     toTreeItem(): TreeItem {
@@ -98,7 +99,7 @@ export class TrialRootNode implements TrialNode {
             this.testRunner.getTests(this.subpackage).then((description: object) => {
                 this.testFetcher = null;
 
-                let items: TrialNode[] = Object.keys(description).map(a => new SuiteTrialNode(a, description[a], this.context, a.indexOf(":") === 0 ? a : ""));
+                let items: TrialNode[] = Object.keys(description).map(a => new SuiteTrialNode(a, description[a], this.context, this.subpackage));
 
                 resolve(items);
             }, (err) => {
@@ -151,7 +152,7 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     }
 
     public runTest(node: TestCaseTrialNode) {
-        testRunner.runTest(node.subpackage, node.data.name);
+        this.testRunner.runTest(node.subpackage, node.data.name);
     }
 
     public getChildren(element?: TrialNode): TrialNode[] | Thenable<TrialNode[]> {

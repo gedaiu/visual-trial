@@ -72,4 +72,34 @@ export default class TestRunner {
 
         return this.subpackagesPromise;
     }
+
+    runTest(subpackage: string, testName: string) {
+        var options = [];
+
+        if(subpackage.indexOf(":") === 0) {
+            options.push(subpackage);
+        }
+
+        options.push("-t");
+        options.push(testName);
+
+        options.push("-r");
+        options.push("tap");
+
+        let testResult: string = "";
+
+        const trialProcess = ChildProcess.spawn("trial", options, { cwd: this.projectRoot });
+
+        trialProcess.stdout.on('data', (data) => {
+            testResult += data;
+        });
+
+        trialProcess.on('close', (code) => {
+            if (code !== 0) {
+                //reject(`trial process exited with code ${code}`);
+            }
+
+            console.log(testResult);
+        });
+    }
 }
