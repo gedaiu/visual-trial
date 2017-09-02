@@ -36,6 +36,10 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('runTest', node => {
         trialTests.runTest(node);
     });
+
+    vscode.commands.registerCommand('runAll', node => {
+        trialTests.runAll(node);
+    });
 }
 
 // this method is called when your extension is deactivated

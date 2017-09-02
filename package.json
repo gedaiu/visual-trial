@@ -25,12 +25,16 @@
         },
         "commands": [
             {
-                "command": "goToTestSource",
-                "title": "Go to the test source"
+                "command": "runAll",
+                "title": "Run"
             },
             {
                 "command": "runTest",
-                "title": "Run the selected test"
+                "title": "Run"
+            },
+            {
+                "command": "goToTestSource",
+                "title": "Go to the test source"
             },
             {
                 "command": "refreshEntry",
@@ -43,6 +47,10 @@
         ],
         "menus": {
             "view/item/context": [
+                {
+                    "command": "runAll",
+                    "when": "viewItem == trialRoot"
+                },
                 {
                     "command": "refreshEntry",
                     "when": "viewItem == trialRoot"

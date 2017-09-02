@@ -16,22 +16,33 @@ export interface TestLocation {
     line: number;
 }
 
+export interface TestCaseData {
+    suiteName: string;
+    name: string;
+    location: TestLocation;
+}
+
 export class TestCaseTrialNode implements TrialNode {
-    constructor(public data: any, private context: vscode.ExtensionContext, public subpackage: string, private testRunner: TestRunner) {
+    constructor(public subpackage: string,
+                public suite: string,
+                public name: string,
+                public data: TestCaseData, 
+                private context: vscode.ExtensionContext, 
+                private testRunner: TestRunner) {
 
     }
 
     getIcon() : { light: string | Uri; dark: string | Uri } {
         var result = this.testRunner.getResult(this.data.suiteName, this.data.name);
 
-        if(!result["result"]) {
+        if(!result) {
             return {
                 light: this.context.asAbsolutePath(path.join('resources', 'light', 'unknown.svg')),
                 dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'unknown.svg'))
             };
         }
 
-        if(result["result"] == "ok") {
+        if(result.value == "ok") {
             return {
                 light: this.context.asAbsolutePath(path.join('resources', 'light', 'ok.svg')),
                 dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'ok.svg'))
@@ -65,13 +76,18 @@ export class TestCaseTrialNode implements TrialNode {
 }
 
 export class SuiteTrialNode implements TrialNode {
-    constructor(public name: string, public childElements: any, private context: vscode.ExtensionContext, public subpackage: string, private testRunner: TestRunner) {
+    constructor(public subpackage: string, 
+                public name: string, 
+                public childElements: Array<TestCaseData> | object, 
+                private context: vscode.ExtensionContext, 
+                private testRunner: TestRunner,
+                private collection: TrialCollection) {
 
     }
 
     toTreeItem(): TreeItem {
         return {
-            label: this.name,
+            label: this.name.split(".").reverse()[0],
             iconPath: {
                 light: this.context.asAbsolutePath(path.join('resources', 'light', 'suite.svg')),
                 dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'suite.svg'))
@@ -83,10 +99,15 @@ export class SuiteTrialNode implements TrialNode {
 
     getChildren(): TrialNode[] | Thenable<TrialNode[]> {
         if (Array.isArray(this.childElements)) {
-            return this.childElements.map(a => new TestCaseTrialNode(a, this.context, this.subpackage, this.testRunner));
+            return this.childElements.map(a =>
+                this.collection.getTest(this.subpackage, a.suiteName, a.name, a)
+            );
         }
 
-        return Object.keys(this.childElements).map(a => new SuiteTrialNode(a, this.childElements[a], this.context, this.subpackage, this.testRunner));
+        const pre = this.name === "" ? "" : this.name + ".";
+        return Object.keys(this.childElements).map(a => 
+            this.collection.getSuite(this.subpackage, pre + a, this.childElements[a])
+        );
     }
 }
 
@@ -94,7 +115,7 @@ export class TrialRootNode implements TrialNode {
     testFetcher: Thenable<TrialNode[]>;
     subpackage: string = "";
 
-    constructor(private name: string, private context: vscode.ExtensionContext, private testRunner: TestRunner) {
+    constructor(private name: string, private context: vscode.ExtensionContext, private testRunner: TestRunner, private collection: TrialCollection) {
         this.subpackage = this.name.indexOf(":") === 0 ? this.name : "";
     }
 
@@ -119,7 +140,9 @@ export class TrialRootNode implements TrialNode {
             this.testRunner.getTests(this.subpackage).then((description: object) => {
                 this.testFetcher = null;
 
-                let items: TrialNode[] = Object.keys(description).map(a => new SuiteTrialNode(a, description[a], this.context, this.subpackage, this.testRunner));
+                let items: TrialNode[] = Object.keys(description).map(a => 
+                    this.collection.getSuite(this.subpackage, a, description[a])
+                );
 
                 resolve(items);
             }, (err) => {
@@ -132,15 +155,62 @@ export class TrialRootNode implements TrialNode {
     }
 }
 
+class TrialCollection {
+    private subpackages: Map<string, TrialRootNode> = new Map<string, TrialRootNode>();
+    private suites: Map<string, SuiteTrialNode> = new Map<string, SuiteTrialNode>();
+    private tests: Map<string, TestCaseTrialNode> = new Map<string, TestCaseTrialNode>();
+
+    constructor(private context: vscode.ExtensionContext, private testRunner: TestRunner) {
+
+    }
+
+    getSubpackage(name: string) {
+        if(!this.subpackages[name]) {
+            this.subpackages[name] = new TrialRootNode(name, this.context, this.testRunner, this);
+        }
+
+        return this.subpackages[name];
+    }
+    
+    getSuite(subpackage: string, suite: string, content: Array<TestCaseTrialNode> | object | null = null) {
+        const key = subpackage + "#" + suite;
+
+        if(!this.suites[key]) {
+            this.suites[key] = new SuiteTrialNode(subpackage, suite, content, this.context, this.testRunner, this);
+        }
+
+        return this.suites[key];
+    }
+
+    getTest(subpackage: string, suite: string, name: string, data: TestCaseData | null = null) : TestCaseTrialNode {
+        const key = subpackage + "#" + suite + "#" + name;
+        
+        if(!this.tests[key]) {
+            this.tests[key] = new TestCaseTrialNode(subpackage, suite, name, data, this.context, this.testRunner);
+        }
+
+        if(data != null) {
+            this.tests[key].data = data;
+        }
+
+        return this.tests[key];
+    }
+}
+
 export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     private _onDidChangeTreeData: EventEmitter<any> = new EventEmitter<any>();
     readonly onDidChangeTreeData: Event<any> = this._onDidChangeTreeData.event;
 
-    private rootNodesFetcher: Thenable<TrialNode[]>;
     private testRunner: TestRunner;
+    private collection: TrialCollection;
 
     constructor(public projectRoot: string, private context: vscode.ExtensionContext) {
-        this.testRunner = new TestRunner(projectRoot, this._onDidChangeTreeData);
+        this.testRunner = new TestRunner(projectRoot);
+        this.collection =  new TrialCollection(context, this.testRunner);
+
+        this.testRunner.onResult((subpackage: string, suite: string, name: string) => {
+            this.refresh(this.collection.getSuite(subpackage, suite));
+        });
     }
 
     public getTreeItem(element: TrialNode): TreeItem {
@@ -148,22 +218,11 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     }
 
     private rootNodes(): Thenable<TrialNode[]> {
-        if (this.rootNodesFetcher) {
-            return this.rootNodesFetcher;
-        }
-
-        this.rootNodesFetcher = new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             this.testRunner.subpackages().then((items: string[]) => {
-                resolve(items.map(a => new TrialRootNode(a, this.context, this.testRunner)));
-
-                this.rootNodesFetcher = null;
-            }, (err) => {
-                this.rootNodesFetcher = null;
-                reject(err);
-            });
+                resolve(items.map(a => this.collection.getSubpackage(a)));
+            }, reject);
         });
-
-        return this.rootNodesFetcher;
     }
 
     public refresh(node: TrialNode) {
@@ -172,6 +231,10 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
 
     public runTest(node: TestCaseTrialNode) {
         this.testRunner.runTest(node);
+    }
+
+    public runAll(node: TrialRootNode) {
+        this.testRunner.runAll(node);
     }
 
     public getChildren(element?: TrialNode): TrialNode[] | Thenable<TrialNode[]> {

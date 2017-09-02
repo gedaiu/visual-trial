@@ -44,4 +44,16 @@ suite("Action", () => {
 
         action.perform().onFinish(done);
     });
+
+    test("It should mark it as running", (done) => {
+        var action = new Action("name", (localDone) => {
+            localDone();
+        });
+
+        action.perform().onFinish(() => {
+            should(action.isRunning).equal(false);
+            done();
+        });
+        should(action.isRunning).equal(true);
+    });
 });
