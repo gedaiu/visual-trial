@@ -2,12 +2,14 @@ import * as ChildProcess from "child_process"
 import { TestCaseTrialNode } from "./trialTestsDataProvider";
 import { TapParser } from "./tapParser";
 import { EventEmitter } from "vscode";
+import Action from "./action";
 
 export default class TestRunner {
     private subpackagesPromise: Thenable<string[]>;
     private testsPromise: Thenable<object>;
     private tapParser: TapParser;
     private results: any = {};
+    private actions: Array<Action> = [];
 
     constructor(private projectRoot: string, private _onDidChangeTreeData: EventEmitter<any>) {
         this.tapParser = new TapParser();
@@ -18,6 +20,7 @@ export default class TestRunner {
             }
 
             this.results[result.suite][result.name] = result;
+            _onDidChangeTreeData.fire();
         });
     }
 
@@ -76,24 +79,28 @@ export default class TestRunner {
         }
 
         this.subpackagesPromise = new Promise((resolve, reject) => {
-            const trialProcess = ChildProcess.spawn("trial", ["subpackages"], { cwd: this.projectRoot });
+            var action = new Action("subpackages", () => {
+                const trialProcess = ChildProcess.spawn("trial", ["subpackages"], { cwd: this.projectRoot });
 
-            let rawSubpackages = "";
+                let rawSubpackages = "";
 
-            trialProcess.stdout.on('data', (data) => {
-                rawSubpackages += data;
+                trialProcess.stdout.on('data', (data) => {
+                    rawSubpackages += data;
+                });
+
+                trialProcess.on('close', (code) => {
+                    if (code !== 0) {
+                        reject(`trial process exited with code ${code}`);
+                    }
+
+                    let items = rawSubpackages.trim().split("\n");
+
+                    resolve(items);
+                    this.subpackagesPromise = null;
+                });
             });
 
-            trialProcess.on('close', (code) => {
-                if (code !== 0) {
-                    reject(`trial process exited with code ${code}`);
-                }
-
-                let items = rawSubpackages.trim().split("\n");
-
-                resolve(items);
-                this.subpackagesPromise = null;
-            });
+            this.actions.push(action);
         });
 
         return this.subpackagesPromise;
@@ -128,9 +135,7 @@ export default class TestRunner {
                 //reject(`trial process exited with code ${code}`);
             }
 
-            this._onDidChangeTreeData.fire(node);
-
-            console.log(testResult);
+            this._onDidChangeTreeData.fire();
         });
     }
 }
