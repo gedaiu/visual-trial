@@ -2,9 +2,18 @@ import * as YAML from "yamljs";
 
 export class TapParser {
     private eventFunction: (result: TestResult) => void;
+    private lastResult: TestResult = null;
+    private readingYaml: boolean = false;
+    private yamlData: string;
 
     onTestResult(eventFunction: (result: TestResult) => void) {
         this.eventFunction = eventFunction;
+    }
+
+    private notify(result: TestResult) {
+        if(this.eventFunction) {
+            this.eventFunction(result);
+        }
     }
 
     setData(data: string | Buffer) {
@@ -14,13 +23,37 @@ export class TapParser {
         }
 
         this.setString(data.toString());
-    }    addLine: any;
+    }
 
-        
     setString(data: string) {
         data.split("\n").forEach((line: string) => {
-            if(line.indexOf("ok - ") === 0 || line.indexOf("not ok - ") === 0) {
-                this.eventFunction(new TestResult(line));
+            if(line == "") {
+                this.lastResult = null;
+                return;
+            }
+
+            if(TestResult.isValidResult(line)) {
+                this.readingYaml = false;
+                this.lastResult = new TestResult(line);
+                this.notify(this.lastResult);
+                return;
+            }
+
+            if(this.lastResult != null) {
+                if(line == "  ---") {
+                    this.readingYaml = true;
+                    this.yamlData = "";
+                    return;
+                }
+                
+                if(this.readingYaml) {
+                    this.yamlData += line + "\n";
+                    this.lastResult.setYamlData(this.yamlData);
+                } else {
+                    this.lastResult.addLine(line);
+                }
+
+                this.notify(this.lastResult);
             }
         });
     }

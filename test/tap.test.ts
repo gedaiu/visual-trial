@@ -218,9 +218,87 @@ suite("TAP Protocol", () => {
             should(result.suite).equal("trial.discovery.unit");
             should(result.value).equal("not ok");
 
+            parser.onTestResult(null);
             done();
         });
 
         parser.setData(oneFailedTest);
+    });
+
+    test("update a result with the diagnostics", (done) => {
+        var parser = new TapParser();
+        var index = 0;
+
+        parser.onTestResult((result) => {
+            should(result.name).equal("test name");
+            should(result.suite).equal("suite");
+            should(result.value).equal("ok");
+            index++;
+
+            if(index == 2) {
+                should(result.diagnostics).equal("debug data 1\n");
+            }
+
+            if(index == 3) {
+                should(result.diagnostics).equal("debug data 1\ndebug data 2\n");
+                done();
+            }
+        });
+
+        parser.setData("ok - suite.test name");
+        parser.setData("# debug data 1");
+        parser.setData("# debug data 2");
+    });
+
+    test("update a result with the yaml data", (done) => {
+        var parser = new TapParser();
+        var index = 0;
+
+        parser.onTestResult((result) => {
+            should(result.name).equal("test name");
+            should(result.suite).equal("suite");
+            should(result.value).equal("ok");
+            index++;
+
+            if(index == 2) {
+                should(result.other).have.keys('message');
+                should(result.other["message"]).equal('some message');
+                done();
+            }
+        });
+
+        parser.setData("ok - suite.test name");
+        parser.setData("  ---");
+        parser.setData("  message: 'some message'");
+    });
+
+    test("create a new test result on every valid result line", (done) => {
+        var parser = new TapParser();
+        var index = 0;
+
+        var test1Validation = (result) => {
+            should(result.name).equal("test1");
+            should(result.suite).equal("suite");
+            should(result.value).equal("ok");
+            index++;
+
+            if(index == 2) {
+                should(result.diagnostics).equal("debug data 1\n");
+                parser.onTestResult(test2Validation);
+            }
+        };
+
+        var test2Validation = (result) => {
+            should(result.name).equal("test2");
+            should(result.suite).equal("suite");
+            should(result.value).equal("ok");
+            done();
+        };
+
+        parser.onTestResult(test1Validation);
+
+        parser.setData("ok - suite.test1");
+        parser.setData("# debug data 1");
+        parser.setData("ok - suite.test2");
     });
 });
