@@ -13,8 +13,18 @@ export class TapParser {
         this.eventFunction = eventFunction;
     }
 
-    setData(data: string) {
+    setData(data: string | Buffer) {
+        if(typeof data === "string" || data instanceof String) {
+            this.setString(<string> data);
+        }
+
+        this.setString(data.toString());
+    }
+        
+    setString(data: string) {
         data.split("\n").forEach((line: string) => {
+            console.log(line);
+
             if(line.indexOf("ok - ") === 0) {
                 line = line.substr(5);
                 var pieces = line.split(".");

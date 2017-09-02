@@ -17,8 +17,31 @@ export interface TestLocation {
 }
 
 export class TestCaseTrialNode implements TrialNode {
-    constructor(public data: any, private context: vscode.ExtensionContext, public subpackage: string) {
+    constructor(public data: any, private context: vscode.ExtensionContext, public subpackage: string, private testRunner: TestRunner) {
 
+    }
+
+    getIcon() : { light: string | Uri; dark: string | Uri } {
+        var result = this.testRunner.getResult(this.data.suiteName, this.data.name);
+
+        if(!result["result"]) {
+            return {
+                light: this.context.asAbsolutePath(path.join('resources', 'light', 'unknown.svg')),
+                dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'unknown.svg'))
+            };
+        }
+
+        if(result["result"] == "ok") {
+            return {
+                light: this.context.asAbsolutePath(path.join('resources', 'light', 'ok.svg')),
+                dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'ok.svg'))
+            };
+        }
+
+        return {
+            light: this.context.asAbsolutePath(path.join('resources', 'light', 'not_ok.svg')),
+            dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'not_ok.svg'))
+        };
     }
 
     toTreeItem(): TreeItem {
@@ -31,10 +54,7 @@ export class TestCaseTrialNode implements TrialNode {
                 title: 'Go to the test source'
             },
             contextValue: 'trialTestCase',
-            iconPath: {
-                light: this.context.asAbsolutePath(path.join('resources', 'light', 'unknown.svg')),
-                dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'unknown.svg'))
-            },
+            iconPath: this.getIcon()
         };
     }
 
@@ -45,7 +65,7 @@ export class TestCaseTrialNode implements TrialNode {
 }
 
 export class SuiteTrialNode implements TrialNode {
-    constructor(public name: string, public childElements: any, private context: vscode.ExtensionContext, public subpackage: string) {
+    constructor(public name: string, public childElements: any, private context: vscode.ExtensionContext, public subpackage: string, private testRunner: TestRunner) {
 
     }
 
@@ -63,10 +83,10 @@ export class SuiteTrialNode implements TrialNode {
 
     getChildren(): TrialNode[] | Thenable<TrialNode[]> {
         if (Array.isArray(this.childElements)) {
-            return this.childElements.map(a => new TestCaseTrialNode(a, this.context, this.subpackage));
+            return this.childElements.map(a => new TestCaseTrialNode(a, this.context, this.subpackage, this.testRunner));
         }
 
-        return Object.keys(this.childElements).map(a => new SuiteTrialNode(a, this.childElements[a], this.context, this.subpackage));
+        return Object.keys(this.childElements).map(a => new SuiteTrialNode(a, this.childElements[a], this.context, this.subpackage, this.testRunner));
     }
 }
 
@@ -99,7 +119,7 @@ export class TrialRootNode implements TrialNode {
             this.testRunner.getTests(this.subpackage).then((description: object) => {
                 this.testFetcher = null;
 
-                let items: TrialNode[] = Object.keys(description).map(a => new SuiteTrialNode(a, description[a], this.context, this.subpackage));
+                let items: TrialNode[] = Object.keys(description).map(a => new SuiteTrialNode(a, description[a], this.context, this.subpackage, this.testRunner));
 
                 resolve(items);
             }, (err) => {
@@ -113,7 +133,6 @@ export class TrialRootNode implements TrialNode {
 }
 
 export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
-
     private _onDidChangeTreeData: EventEmitter<any> = new EventEmitter<any>();
     readonly onDidChangeTreeData: Event<any> = this._onDidChangeTreeData.event;
 
@@ -121,7 +140,7 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     private testRunner: TestRunner;
 
     constructor(public projectRoot: string, private context: vscode.ExtensionContext) {
-        this.testRunner = new TestRunner(projectRoot);
+        this.testRunner = new TestRunner(projectRoot, this._onDidChangeTreeData);
     }
 
     public getTreeItem(element: TrialNode): TreeItem {

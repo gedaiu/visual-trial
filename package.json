@@ -46,7 +46,8 @@
                 {
                     "command": "refreshEntry",
                     "when": "viewItem == trialRoot"
-                }, {
+                },
+                {
                     "command": "runTest",
                     "when": "viewItem == trialTestCase"
                 }

@@ -1,11 +1,24 @@
 import * as ChildProcess from "child_process"
 import { TestCaseTrialNode } from "./trialTestsDataProvider";
+import { TapParser } from "./tapParser";
+import { EventEmitter } from "vscode";
 
 export default class TestRunner {
     private subpackagesPromise: Thenable<string[]>;
     private testsPromise: Thenable<object>;
+    private tapParser: TapParser;
+    private results: any = {};
 
-    constructor(private projectRoot: string) {
+    constructor(private projectRoot: string, private _onDidChangeTreeData: EventEmitter<any>) {
+        this.tapParser = new TapParser();
+
+        this.tapParser.onTestResult((result) => {
+            if(!this.results[result.suite]) {
+                this.results[result.suite] = {};
+            }
+
+            this.results[result.suite][result.name] = result;
+        });
     }
 
     getTests(subpackage: string = ""): Thenable<object> {
@@ -43,6 +56,18 @@ export default class TestRunner {
         });
 
         return this.testsPromise;
+    }
+
+    getResult(suite: string, testName: string): object {
+        if(!this.results[suite]) {
+            return {};
+        }
+
+        if(!this.results[suite][testName]) {
+            return {};
+        }
+
+        return this.results[suite][testName];
     }
 
     subpackages(): Thenable<string[]> {
@@ -95,13 +120,15 @@ export default class TestRunner {
         const trialProcess = ChildProcess.spawn("trial", options, { cwd: this.projectRoot });
 
         trialProcess.stdout.on('data', (data) => {
-            testResult += data;
+            this.tapParser.setData(data);
         });
 
         trialProcess.on('close', (code) => {
             if (code !== 0) {
                 //reject(`trial process exited with code ${code}`);
             }
+
+            this._onDidChangeTreeData.fire(node);
 
             console.log(testResult);
         });
