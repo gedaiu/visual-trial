@@ -1,3 +1,5 @@
+import * as YAML from "yamljs";
+
 export class TapParser {
     private eventFunction: (result: TestResult) => void;
 
@@ -12,7 +14,8 @@ export class TapParser {
         }
 
         this.setString(data.toString());
-    }
+    }    addLine: any;
+
         
     setString(data: string) {
         data.split("\n").forEach((line: string) => {
@@ -26,18 +29,31 @@ export class TapParser {
 export class TestResult {
     private static resultValues: Array<string> = [ "ok", "not ok" ];
 
-    private _value: string;
+    private _value: string = "unknown";
     private _name: string;
     private _suite: string;
     private _index: number = NaN;
-
+    private _diagnostics: string = "";
+    private _other: Object;
+    
     constructor(private line: string) {
+        this.parseResultLine(line);
+    }
+
+    public static isValidResult(line: string) {
+        return TestResult.resultValues.filter((value) => line.indexOf(value + " ") === 0).length === 1;
+    }
+
+    private parseResultLine(line: String) {
+        if(this.value != "unknown") {
+            throw new Error("There already is a valid result.");
+        }
+
         const value = TestResult.resultValues.filter((value) => line.indexOf(value + " ") === 0);
         if(value.length == 1) {
             this._value = value[0];
             line = line.substr(this._value.length + 1); /// we want to remove the space too
         } else {
-            this._value = "unknown";
             line = line.substr(line.indexOf(" ")).trim();
         }
 
@@ -56,6 +72,29 @@ export class TestResult {
         this._suite = pieces.join(".");
     }
 
+    addLine(line: string) {
+        if(TestResult.isValidResult(line)) {
+            this.parseResultLine(line);
+            return;
+        }
+
+        this._diagnostics += line.substr(2) + "\n";
+    }
+
+    setYamlData(data: string) {
+        try {
+            this._other = YAML.parse(data);
+        } catch(err) {
+            this._other = {
+                message: data
+            }
+        }
+    }
+
+    get diagnostics() {
+        return this._diagnostics;
+    }
+
     get name(): string {
         return this._name;
     }
@@ -70,6 +109,10 @@ export class TestResult {
     
     get index(): number {
         return this._index;
+    }
+
+    get other(): Object {
+        return this._other;
     }
 }
 

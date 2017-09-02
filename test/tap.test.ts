@@ -128,6 +128,65 @@ suite("TAP Protocol", () => {
         should(result.name).equal("it should be able to compile the settings code");
     });
 
+    test("It should add the details", () => {
+        var result = new TestResult("");
+
+        result.addLine("# core.exception.RangeError: Range violation");
+        result.addLine("# ");
+        result.addLine("# --------------------");
+        
+        should(result.diagnostics).equal("core.exception.RangeError: Range violation\n\n--------------------\n");
+    });
+
+    test("Adding a valid result should set the right fields", () => {
+        var result = new TestResult("");
+
+        result.addLine("ok it should be able to compile the settings code");
+        
+        should(result.value).equal("ok");
+        should(result.suite).equal("");
+        should(result.name).equal("it should be able to compile the settings code");
+        should(result.diagnostics).equal("");
+    });
+
+    test("It should throw on adding a valid result twice", (done) => {
+        var result = new TestResult("ok it should be able to compile the settings code");
+
+        try {
+            result.addLine("ok it should be able to compile the settings code");
+        } catch(err) {
+            done();
+        }
+    });
+
+    test("It should parse yaml data", () => {
+        var result = new TestResult("");
+        result.setYamlData("  message: 'core.exception.RangeError: Range violation'\n" +
+                           "  severity: failure\n" +
+                           "  location:\n" + 
+                           "    fileName: 'lifecycle/trial/discovery/unit.d'\n" + 
+                           "    line: 426\n");
+
+        should(result.other).have.keys('message', 'severity', 'location');
+        should(result.other["message"]).equal('core.exception.RangeError: Range violation');
+        should(result.other["severity"]).equal('failure');
+
+        should(result.other["location"]).have.keys('fileName', 'line');
+        should(result.other["location"]['fileName']).equal("lifecycle/trial/discovery/unit.d");
+        should(result.other["location"]['line']).equal(426);
+    });
+
+    test("It should not parse invalid yaml data", () => {
+        var result = new TestResult("");
+        result.setYamlData("  some invalid line\n" +
+                           " huh?\n" +
+                           "  location:\n" + 
+                           "    fileName: 'lifecycle/trial/discovery/unit.d'\n" + 
+                           "    line: 426");
+
+        should(result.other).have.keys('message');
+        should(result.other["message"]).equal("  some invalid line\n huh?\n  location:\n    fileName: \'lifecycle/trial/discovery/unit.d\'\n    line: 426");
+    });
 
     test("It should parse an empty line", () => {
         var result = new TestResult("");
