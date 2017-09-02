@@ -3,6 +3,7 @@ import * as ChildProcess from "child_process"
 import * as path from 'path';
 import * as vscode from 'vscode';
 import TestRunner from "./testRunner";
+import { TestResult } from "./tapParser";
 
 export interface TrialNode {
     subpackage: string;
@@ -26,42 +27,32 @@ export class TestCaseTrialNode implements TrialNode {
     constructor(public subpackage: string,
                 public suite: string,
                 public name: string,
-                public data: TestCaseData, 
-                private context: vscode.ExtensionContext, 
-                private testRunner: TestRunner) {
+                public location: TestLocation, 
+                private collection: TrialCollection) {
 
     }
 
     getIcon() : { light: string | Uri; dark: string | Uri } {
-        var result = this.testRunner.getResult(this.data.suiteName, this.data.name);
+        var result = this.collection.getResult(this.subpackage, this.suite, this.name);
 
         if(!result) {
-            return {
-                light: this.context.asAbsolutePath(path.join('resources', 'light', 'unknown.svg')),
-                dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'unknown.svg'))
-            };
+            return this.collection.icon('unknown.svg');
         }
 
         if(result.value == "ok") {
-            return {
-                light: this.context.asAbsolutePath(path.join('resources', 'light', 'ok.svg')),
-                dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'ok.svg'))
-            };
+            return this.collection.icon('ok.svg');
         }
 
-        return {
-            light: this.context.asAbsolutePath(path.join('resources', 'light', 'not_ok.svg')),
-            dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'not_ok.svg'))
-        };
+        return this.collection.icon('not_ok.svg');
     }
 
     toTreeItem(): TreeItem {
         return {
-            label: this.data.name,
+            label: this.name,
             collapsibleState: TreeItemCollapsibleState.None,
             command: {
                 command: 'goToTestSource',
-                arguments: [this.data.location],
+                arguments: [ this.location ],
                 title: 'Go to the test source'
             },
             contextValue: 'trialTestCase',
@@ -79,8 +70,6 @@ export class SuiteTrialNode implements TrialNode {
     constructor(public subpackage: string, 
                 public name: string, 
                 public childElements: Array<TestCaseData> | object, 
-                private context: vscode.ExtensionContext, 
-                private testRunner: TestRunner,
                 private collection: TrialCollection) {
 
     }
@@ -88,10 +77,7 @@ export class SuiteTrialNode implements TrialNode {
     toTreeItem(): TreeItem {
         return {
             label: this.name.split(".").reverse()[0],
-            iconPath: {
-                light: this.context.asAbsolutePath(path.join('resources', 'light', 'suite.svg')),
-                dark: this.context.asAbsolutePath(path.join('resources', 'dark', 'suite.svg'))
-            },
+            iconPath: this.collection.icon('suite.svg'),
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'trialSuite'
         };
@@ -100,7 +86,7 @@ export class SuiteTrialNode implements TrialNode {
     getChildren(): TrialNode[] | Thenable<TrialNode[]> {
         if (Array.isArray(this.childElements)) {
             return this.childElements.map(a =>
-                this.collection.getTest(this.subpackage, a.suiteName, a.name, a)
+                this.collection.getTest(this.subpackage, a.suiteName, a.name, a.location)
             );
         }
 
@@ -176,24 +162,39 @@ class TrialCollection {
         const key = subpackage + "#" + suite;
 
         if(!this.suites[key]) {
-            this.suites[key] = new SuiteTrialNode(subpackage, suite, content, this.context, this.testRunner, this);
+            this.suites[key] = new SuiteTrialNode(subpackage, suite, content, this);
+        }
+
+        if(content != null) {
+            this.suites[key].childElements = content;
         }
 
         return this.suites[key];
     }
 
-    getTest(subpackage: string, suite: string, name: string, data: TestCaseData | null = null) : TestCaseTrialNode {
+    getTest(subpackage: string, suite: string, name: string, location: TestLocation | null = null) : TestCaseTrialNode {
         const key = subpackage + "#" + suite + "#" + name;
         
         if(!this.tests[key]) {
-            this.tests[key] = new TestCaseTrialNode(subpackage, suite, name, data, this.context, this.testRunner);
+            this.tests[key] = new TestCaseTrialNode(subpackage, suite, name, location, this);
         }
 
-        if(data != null) {
-            this.tests[key].data = data;
+        if(location != null) {
+            this.tests[key].location = location;
         }
 
         return this.tests[key];
+    }
+
+    getResult(subpackage: string, suite: string, name: string) : TestResult | null {
+        return this.testRunner.getResult(subpackage, suite, name);
+    }
+
+    icon(name: string) : { light: string | Uri; dark: string | Uri } {
+        return {
+            light: this.context.asAbsolutePath(path.join('resources', 'light', name)),
+            dark: this.context.asAbsolutePath(path.join('resources', 'dark', name))
+        };
     }
 }
 

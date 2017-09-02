@@ -8,7 +8,7 @@ export default class TestRunner {
     private subpackagesPromise: Thenable<string[]>;
     private testsPromise: Map<string, Thenable<object>> = new Map<string, Thenable<object>>();
     private tapParser: TapParser;
-    private results: Map<string, Map<string, TestResult>> = new Map<string, Map<string, TestResult>>();
+    private results: Map<string, Map<string, Map<string, TestResult>>> = new Map<string, Map<string, Map<string, TestResult>>>();
     private actions: Array<Action> = [];
     private output: vscode.OutputChannel;
     private runningSubpackage: string = "";
@@ -19,18 +19,22 @@ export default class TestRunner {
         this.output = vscode.window.createOutputChannel("Trial");
 
         this.tapParser.onTestResult((result) => {
-            if(!this.results[result.suite]) {
-                this.results[result.suite] = {};
+            if(!this.results[this.runningSubpackage]) {
+                this.results[this.runningSubpackage] = {};
             }
 
-            this.results[result.suite][result.name] = result;
-            this.notify(result.suite, result.name);
+            if(!this.results[this.runningSubpackage][result.suite]) {
+                this.results[this.runningSubpackage][result.suite] = {};
+            }
+
+            this.results[this.runningSubpackage][result.suite][result.name] = result;
+            this.notify(this.runningSubpackage, result.suite, result.name);
         });
     }
 
-    private notify(suite: string, name: string) {
+    private notify(subpackage: string, suite: string, name: string) {
         if(this._notification) {
-            this._notification(this.runningSubpackage, suite, name);
+            this._notification(subpackage, suite, name);
         }
     }
 
@@ -38,7 +42,7 @@ export default class TestRunner {
         this._notification = notification;
     }
 
-    private start(options: Array<string>) {
+    private start(options: Array<string>, done) {
         this.output.appendLine("> trial " + options.join(' '));
         var proc = ChildProcess.spawn("trial", options, { cwd: this.projectRoot, shell: true });
         
@@ -52,14 +56,31 @@ export default class TestRunner {
 
         proc.on('close', (code) => {
             this.output.appendLine(`\ntrial process exited with code ${code}\n\n`);
+            if(code != 0) {
+                vscode.window.showErrorMessage(`trial process exited with code ${code}`);
+            }
+
+            if(done) {
+                done();
+            }
         });
 
         proc.on('disconnect', () => {
             this.output.appendLine(`\ntrial process disconnected\n\n`);
+            vscode.window.showErrorMessage(`trial process disconnected`);
+
+            if(done) {
+                done();
+            }
         });
 
         proc.on('error', (err) => {
             this.output.appendLine(`\ntrial process error: ` + err + `\n\n`);
+            vscode.window.showErrorMessage(`trial process error: ` + err);
+
+            if(done) {
+                done();
+            }
         });
 
         return proc;
@@ -82,7 +103,7 @@ export default class TestRunner {
 
         this.testsPromise[key] = new Promise((resolve, reject) => {
             this.actions.push(new Action(key, (done) => {
-                const trialProcess = this.start(options);
+                const trialProcess = this.start(options, done);
                 let rawDescription = "";
 
                 trialProcess.stdout.on('data', (data) => {
@@ -94,7 +115,6 @@ export default class TestRunner {
 
                     if (code !== 0) {
                         reject(`trial process exited with code ${code}`);
-                        done();
                         return;
                     }
 
@@ -103,8 +123,6 @@ export default class TestRunner {
                     } catch (e) {
                         reject(e);
                     }
-                    
-                    done();
                 });
             }));
 
@@ -114,16 +132,20 @@ export default class TestRunner {
         return this.testsPromise[key];
     }
 
-    getResult(suite: string, testName: string): TestResult | null {
-        if(!this.results[suite]) {
+    getResult(subpackage: string, suite: string, testName: string): TestResult | null {
+        if(!this.results[subpackage]) {
             return null;
         }
 
-        if(!this.results[suite][testName]) {
+        if(!this.results[subpackage][suite]) {
             return null;
         }
 
-        return this.results[suite][testName];
+        if(!this.results[subpackage][suite][testName]) {
+            return null;
+        }
+
+        return this.results[subpackage][suite][testName];
     }
 
     subpackages(): Thenable<string[]> {
@@ -135,7 +157,7 @@ export default class TestRunner {
 
         this.subpackagesPromise = new Promise((resolve, reject) => {
             this.actions.push(new Action("subpackages", (done) => {
-                const trialProcess = this.start(["subpackages"]);
+                const trialProcess = this.start(["subpackages"], done);
 
                 let rawSubpackages = "";
 
@@ -145,8 +167,7 @@ export default class TestRunner {
 
                 trialProcess.on('close', (code) => {
                     if (code !== 0) {
-                        reject(`trial process exited with code ${code}`);
-                        done();
+                        reject();
                         return;
                     }
 
@@ -154,7 +175,6 @@ export default class TestRunner {
 
                     resolve(items);
                     this.subpackagesPromise = null;
-                    done();
                 });
             }));
 
@@ -179,9 +199,21 @@ export default class TestRunner {
         });
     }
 
+    private createRunTestAction(name: string, options: Array<string>) {
+        this.actions.push(new Action(name, (done) => {
+            const trialProcess = this.start(options, done);
+    
+            trialProcess.stdout.on('data', (data) => {
+                this.tapParser.setData(data);
+            });
+        }));
+
+        this.nextAction();
+    }
+
     runTest(node: TestCaseTrialNode) {
         this.runningSubpackage = node.subpackage;
-        var testName = node.data.name;
+        var testName = node.name;
 
         var options = [];
 
@@ -195,32 +227,14 @@ export default class TestRunner {
         options.push("-r");
         options.push("tap");
 
-        let testResult: string = "";
-
-        this.actions.push(new Action("run test " + this.runningSubpackage + "#" + testName , (done) => {
-            const trialProcess = this.start(options);
-    
-            trialProcess.stdout.on('data', (data) => {
-                this.tapParser.setData(data);
-            });
-    
-            trialProcess.on('close', (code) => {
-                if (code !== 0) {
-                    //reject(`trial process exited with code ${code}`);
-                }
-
-                done();
-            });
-        }));
-
-        this.nextAction();
+        this.createRunTestAction("run test " + this.runningSubpackage + "#" + testName, options);
     }
-
 
     runAll(node: TrialRootNode) {
         this.runningSubpackage = node.subpackage;
         
         var options = [];
+
         if(this.runningSubpackage.indexOf(":") === 0) {
             options.push(this.runningSubpackage);
         }
@@ -228,24 +242,6 @@ export default class TestRunner {
         options.push("-r");
         options.push("tap");
 
-        let testResult: string = "";
-
-        this.actions.push(new Action("run all " + this.runningSubpackage , (done) => {
-            const trialProcess = this.start(options);
-    
-            trialProcess.stdout.on('data', (data) => {
-                this.tapParser.setData(data);
-            });
-    
-            trialProcess.on('close', (code) => {
-                if (code !== 0) {
-                    //reject(`trial process exited with code ${code}`);
-                }
-
-                done();
-            });
-        }));
-
-        this.nextAction();
+        this.createRunTestAction("run all " + this.runningSubpackage, options);
     }
 }
