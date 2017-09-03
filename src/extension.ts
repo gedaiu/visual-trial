@@ -4,8 +4,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import { TrialTestsDataProvider, TrialNode, TestLocation } from './trialTestsDataProvider'
+import { TrialTestsDataProvider, TrialNode } from './trialTestsDataProvider'
 import { Range } from "vscode";
+import { TestLocation } from "./nodes/testCaseTrialNode";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed

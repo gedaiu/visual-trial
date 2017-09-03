@@ -1,18 +1,28 @@
-import * as ChildProcess from "child_process"
-import { TestCaseTrialNode, TrialRootNode } from "./trialTestsDataProvider";
 import { TapParser, TestResult } from "./tapParser";
 import * as vscode from 'vscode';
-import Action from "./action";
+import { Action, ActionCollection } from "./action";
+import { TrialRootNode } from "./nodes/trialRootNode";
+import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
+import { ChildProcess, spawn } from "child_process";
 
-export default class TestRunner {
+export enum TestState {
+    unknown,
+    success,
+    failure,
+    run,
+    wait
+}
+
+export class TestRunner {
     private subpackagesPromise: Thenable<string[]>;
     private testsPromise: Map<string, Thenable<object>> = new Map<string, Thenable<object>>();
     private tapParser: TapParser;
     private results: Map<string, Map<string, Map<string, TestResult>>> = new Map<string, Map<string, Map<string, TestResult>>>();
-    private actions: Array<Action> = [];
+    private actions: ActionCollection = new ActionCollection();
     private output: vscode.OutputChannel;
     private runningSubpackage: string = "";
-    private _notification: (subpackage: string, suite: string, name: string) => void;
+    private _resultNotification: (subpackage: string, suite: string, name: string) => void;
+    private cachedTests = {};
 
     constructor(private projectRoot: string) {
         this.tapParser = new TapParser();
@@ -33,18 +43,19 @@ export default class TestRunner {
     }
 
     private notify(subpackage: string, suite: string, name: string) {
-        if(this._notification) {
-            this._notification(subpackage, suite, name);
+
+        if(this._resultNotification) {
+            this._resultNotification(subpackage, suite, name);
         }
     }
 
     onResult(notification: (subpackage: string, suite: string, name: string) => void) {
-        this._notification = notification;
+        this._resultNotification = notification;
     }
 
-    private start(options: Array<string>, done) {
+    private start(options: Array<string>, done) : ChildProcess {
         this.output.appendLine("> trial " + options.join(' '));
-        var proc = ChildProcess.spawn("trial", options, { cwd: this.projectRoot, shell: true });
+        var proc = spawn("trial", options, { cwd: this.projectRoot, shell: true });
         
         proc.stdout.on('data', (data) => {
             this.output.append(data.toString());
@@ -102,8 +113,10 @@ export default class TestRunner {
         var _this = this;
 
         this.testsPromise[key] = new Promise((resolve, reject) => {
+            let trialProcess;
             this.actions.push(new Action(key, (done) => {
-                const trialProcess = this.start(options, done);
+                trialProcess = this.start(options, done);
+
                 let rawDescription = "";
 
                 trialProcess.stdout.on('data', (data) => {
@@ -119,14 +132,17 @@ export default class TestRunner {
                     }
 
                     try {
-                        resolve(JSON.parse(rawDescription));
+                        let description = JSON.parse(rawDescription);
+                        resolve(description);
+                        this.cachedTests[subpackage] = description;
                     } catch (e) {
                         reject(e);
                     }
                 });
+            }, () => { 
+                trialProcess.kill(); 
+                reject(key + " was canceled.");
             }));
-
-            _this.nextAction();
         });
 
         return this.testsPromise[key];
@@ -177,29 +193,12 @@ export default class TestRunner {
                     this.subpackagesPromise = null;
                 });
             }));
-
-            _this.nextAction();
         });
 
         return this.subpackagesPromise;
     }
 
-    nextAction() {
-        if(this.actions.length === 0) {
-            return;
-        }
-
-        if(this.actions[0].isRunning) {
-            return;
-        }
-
-        this.actions[0].perform().onFinish(() => {
-            this.actions.shift();
-            this.nextAction();
-        });
-    }
-
-    private createRunTestAction(name: string, options: Array<string>) {
+    private createRunTestAction(name: string, options: Array<string>, subpackage: string) {
         this.actions.push(new Action(name, (done) => {
             const trialProcess = this.start(options, done);
     
@@ -207,8 +206,6 @@ export default class TestRunner {
                 this.tapParser.setData(data);
             });
         }));
-
-        this.nextAction();
     }
 
     runTest(node: TestCaseTrialNode) {
@@ -227,7 +224,7 @@ export default class TestRunner {
         options.push("-r");
         options.push("tap");
 
-        this.createRunTestAction("run test " + this.runningSubpackage + "#" + testName, options);
+        this.createRunTestAction("run test " + this.runningSubpackage + "#" + testName, options, node.subpackage);
     }
 
     runAll(node: TrialRootNode) {
@@ -242,6 +239,6 @@ export default class TestRunner {
         options.push("-r");
         options.push("tap");
 
-        this.createRunTestAction("run all " + this.runningSubpackage, options);
+        this.createRunTestAction("run all " + this.runningSubpackage, options, node.subpackage);
     }
 }
