@@ -4,8 +4,8 @@ import { TestRunner } from "../testRunner";
 import { TrialRootNode } from "./trialRootNode";
 import { TestCaseTrialNode, TestLocation } from "./testCaseTrialNode";
 import { SuiteTrialNode } from "./suiteTrialNode";
-import { TestResult } from "../tapParser";
 import * as path from 'path';
+import { TestResult } from "../trialParser";
 
 export class TrialCollection {
     private subpackages = {};

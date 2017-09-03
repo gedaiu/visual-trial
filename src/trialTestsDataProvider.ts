@@ -3,7 +3,6 @@ import * as ChildProcess from "child_process"
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TestState, TestRunner } from "./testRunner";
-import { TestResult } from "./tapParser";
 import { TrialCollection } from "./nodes/trialCollection";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { TrialRootNode } from "./nodes/trialRootNode";
@@ -48,12 +47,10 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
 
     public runTest(node: TestCaseTrialNode) {
         this.testRunner.runTest(node);
-        this.refresh(this.collection.getSubpackage(node.subpackage));
     }
 
     public runAll(node: TrialRootNode) {
         this.testRunner.runAll(node);
-        this.refresh(this.collection.getSubpackage(node.subpackage));
     }
 
     public getChildren(element?: TrialNode): TrialNode[] | Thenable<TrialNode[]> {

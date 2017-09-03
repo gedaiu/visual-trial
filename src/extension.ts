@@ -10,7 +10,8 @@ import { TestLocation } from "./nodes/testCaseTrialNode";
 import { ActionCollection } from "./action";
 import { ActionsPresenter } from "./actionsPresenter";
 import { TestRunner } from "./testRunner";
-import { TestResult } from "./tapParser";
+import { TestResult } from "./trialParser";
+import { TestDiagnostics } from "./testDiagnostics";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -18,32 +19,27 @@ export function activate(context: vscode.ExtensionContext) {
     const actions = new ActionCollection();
     const actionsPresenter = new ActionsPresenter(actions);
     const testRunner = new TestRunner(vscode.workspace.rootPath, actions);
+    const testDiagnostics = new TestDiagnostics();
 
     const trialTests = new TrialTestsDataProvider(vscode.workspace.rootPath, context, testRunner);
-    const diagnosticCollection = languages.createDiagnosticCollection("Trial");
 
     testRunner.onClearResults(() => {
-        diagnosticCollection.clear();
+        testDiagnostics.clear();
     });
 
     testRunner.onResult((data) => {
         var result: TestResult = testRunner.getResult(data[0], data[1], data[2]);
 
-        if(result.value != "ok" && result.other && result.other["location"]) {
-            var location = result.other["location"];
+        if(result.status != "success") {
             var fileName;
 
-            if(path.isAbsolute(location["fileName"])) {
-                fileName = location["fileName"];
+            if(path.isAbsolute(result.file)) {
+                fileName = result.file;
             } else {
-                fileName = path.join(vscode.workspace.rootPath, location["fileName"]);
+                fileName = path.join(vscode.workspace.rootPath, result.file);
             }
-
-            diagnosticCollection.set(
-                Uri.file(fileName), 
-                [ 
-                    new vscode.Diagnostic(new Range(location.line, 0, location.line, 0), result.diagnostics, vscode.DiagnosticSeverity.Error) 
-                ]);
+            
+            testDiagnostics.add(fileName, result);
         }
     });
 
@@ -60,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         vscode.workspace.openTextDocument(fileName).then(document => {
             vscode.window.showTextDocument(document, {
-                selection: new Range(location.line, 0, location.line, 0)
+                selection: new Range(location.line - 1, 0, location.line - 1, 0)
             });
         });
     });

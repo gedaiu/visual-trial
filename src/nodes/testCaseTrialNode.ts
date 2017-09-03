@@ -29,7 +29,7 @@ export class TestCaseTrialNode implements TrialNode {
             return this.collection.icon('unknown.svg');
         }
 
-        if(result.value == "ok") {
+        if(result.status == "success") {
             return this.collection.icon('ok.svg');
         }
 
