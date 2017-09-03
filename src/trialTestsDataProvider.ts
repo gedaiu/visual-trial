@@ -20,16 +20,14 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     private _onDidChangeTreeData: EventEmitter<any> = new EventEmitter<any>();
     readonly onDidChangeTreeData: Event<any> = this._onDidChangeTreeData.event;
 
-    private testRunner: TestRunner;
     private collection: TrialCollection;
 
-    constructor(public projectRoot: string, private context: vscode.ExtensionContext, actions: ActionCollection) {
-        this.testRunner = new TestRunner(projectRoot, actions);
+    constructor(public projectRoot: string, private context: vscode.ExtensionContext, private testRunner: TestRunner) {
         this.collection =  new TrialCollection(context, this.testRunner);
 
-        this.testRunner.onResult((subpackage: string, suite: string, name: string) => {
-            this.refresh(this.collection.getSuite(subpackage, suite));
-        });
+        this.testRunner.onResult((data) => {
+            this.refresh(this.collection.getSuite(data[0], data[1]));
+        }, this);
     }
 
     public getTreeItem(element: TrialNode): TreeItem {

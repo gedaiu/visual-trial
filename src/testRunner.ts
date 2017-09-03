@@ -4,6 +4,7 @@ import { Action, ActionCollection } from "./action";
 import { TrialRootNode } from "./nodes/trialRootNode";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { ChildProcess, spawn } from "child_process";
+import { EventEmitter, Event } from "vscode";
 
 export enum TestState {
     unknown,
@@ -22,6 +23,12 @@ export class TestRunner {
     private runningSubpackage: string = "";
     private _resultNotification: (subpackage: string, suite: string, name: string) => void;
     private cachedTests = {};
+
+    private _onClearResults: EventEmitter<any> = new EventEmitter<any>();
+    readonly onClearResults: Event<any> = this._onClearResults.event;
+
+    private _onResult: EventEmitter<any> = new EventEmitter<any>();
+    readonly onResult: Event<any> = this._onResult.event;
 
     constructor(private projectRoot: string, private actions: ActionCollection) {
         this.tapParser = new TapParser();
@@ -42,14 +49,7 @@ export class TestRunner {
     }
 
     private notify(subpackage: string, suite: string, name: string) {
-
-        if(this._resultNotification) {
-            this._resultNotification(subpackage, suite, name);
-        }
-    }
-
-    onResult(notification: (subpackage: string, suite: string, name: string) => void) {
-        this._resultNotification = notification;
+        this._onResult.fire([subpackage, suite, name]);
     }
 
     private start(options: Array<string>, done) : ChildProcess {
@@ -225,6 +225,8 @@ export class TestRunner {
     }
 
     runTest(node: TestCaseTrialNode) {
+        this._onClearResults.fire();
+
         this.runningSubpackage = node.subpackage;
         var testName = node.name;
 
@@ -244,6 +246,7 @@ export class TestRunner {
     }
 
     runAll(node: TrialRootNode) {
+        this._onClearResults.fire();
         this.runningSubpackage = node.subpackage;
         
         var options = [];

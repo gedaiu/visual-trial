@@ -68,7 +68,7 @@ export class TestResult {
     private _index: number = NaN;
     private _diagnostics: string = "";
     private _other: Object;
-    
+
     constructor(private line: string) {
         this.parseResultLine(line);
     }
