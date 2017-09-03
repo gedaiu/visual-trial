@@ -50,23 +50,20 @@ suite("Action collection", () => {
         should(cancel).equal(true);
     });
 
-    test("It should not call cancel function for stoped actions", () => {
+    test("It should call cancel function for stoped actions", (done) => {
         var collection = new ActionCollection();
-        var called = false;
         
         collection.push(new Action("name", () => {
         }));
 
         collection.push(new Action("cancel this", () => {
         }, () => {
-            called = true;
+            done();
         }));
 
         should(collection.length).equal(2);
         collection.cancel("cancel this");
-
         should(collection.length).equal(1);
-        should(called).equal(false);
     });
 
 

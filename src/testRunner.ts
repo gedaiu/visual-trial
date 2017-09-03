@@ -18,13 +18,12 @@ export class TestRunner {
     private testsPromise: Map<string, Thenable<object>> = new Map<string, Thenable<object>>();
     private tapParser: TapParser;
     private results: Map<string, Map<string, Map<string, TestResult>>> = new Map<string, Map<string, Map<string, TestResult>>>();
-    private actions: ActionCollection = new ActionCollection();
     private output: vscode.OutputChannel;
     private runningSubpackage: string = "";
     private _resultNotification: (subpackage: string, suite: string, name: string) => void;
     private cachedTests = {};
 
-    constructor(private projectRoot: string) {
+    constructor(private projectRoot: string, private actions: ActionCollection) {
         this.tapParser = new TapParser();
         this.output = vscode.window.createOutputChannel("Trial");
 
@@ -140,7 +139,12 @@ export class TestRunner {
                     }
                 });
             }, () => { 
-                trialProcess.kill(); 
+                this.testsPromise[key] = null;
+
+                if(trialProcess) {
+                    trialProcess.kill(); 
+                }
+
                 reject(key + " was canceled.");
             }));
         });
@@ -172,8 +176,9 @@ export class TestRunner {
         var _this = this;
 
         this.subpackagesPromise = new Promise((resolve, reject) => {
+            var trialProcess;
             this.actions.push(new Action("subpackages", (done) => {
-                const trialProcess = this.start(["subpackages"], done);
+                trialProcess = this.start(["subpackages"], done);
 
                 let rawSubpackages = "";
 
@@ -192,6 +197,11 @@ export class TestRunner {
                     resolve(items);
                     this.subpackagesPromise = null;
                 });
+            }, () => {
+                if(trialProcess) {
+                    trialProcess.kill();
+                    reject("Trial subpackages was canceled.");
+                }
             }));
         });
 
@@ -199,12 +209,18 @@ export class TestRunner {
     }
 
     private createRunTestAction(name: string, options: Array<string>, subpackage: string) {
+        var trialProcess;
+
         this.actions.push(new Action(name, (done) => {
-            const trialProcess = this.start(options, done);
+            trialProcess = this.start(options, done);
     
             trialProcess.stdout.on('data', (data) => {
                 this.tapParser.setData(data);
             });
+        }, () => {
+            if(trialProcess) {
+                trialProcess.kill();
+            }
         }));
     }
 

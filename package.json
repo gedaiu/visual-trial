@@ -25,6 +25,10 @@
         },
         "commands": [
             {
+                "command": "showTrialActions",
+                "title": "Show the Trial actions"
+            },
+            {
                 "command": "runAll",
                 "title": "Run"
             },

@@ -7,11 +7,15 @@ import * as path from 'path';
 import { TrialTestsDataProvider, TrialNode } from './trialTestsDataProvider'
 import { Range } from "vscode";
 import { TestLocation } from "./nodes/testCaseTrialNode";
+import { ActionCollection } from "./action";
+import { ActionsPresenter } from "./actionsPresenter";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    const trialTests = new TrialTestsDataProvider(vscode.workspace.rootPath, context);
+    const actions = new ActionCollection();
+    const actionsPresenter = new ActionsPresenter(actions);
+    const trialTests = new TrialTestsDataProvider(vscode.workspace.rootPath, context, actions);
 
     vscode.window.registerTreeDataProvider('trialTests', trialTests);
 
@@ -28,6 +32,10 @@ export function activate(context: vscode.ExtensionContext) {
                 selection: new Range(location.line, 0, location.line, 0)
             });
         });
+    });
+
+    vscode.commands.registerCommand('showTrialActions', () => {
+        actionsPresenter.show();
     });
 
     vscode.commands.registerCommand('refreshEntry', node => {

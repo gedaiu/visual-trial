@@ -7,6 +7,7 @@ import { TestResult } from "./tapParser";
 import { TrialCollection } from "./nodes/trialCollection";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { TrialRootNode } from "./nodes/trialRootNode";
+import { ActionCollection } from "./action";
 
 export interface TrialNode {
     subpackage: string;
@@ -22,8 +23,8 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     private testRunner: TestRunner;
     private collection: TrialCollection;
 
-    constructor(public projectRoot: string, private context: vscode.ExtensionContext) {
-        this.testRunner = new TestRunner(projectRoot);
+    constructor(public projectRoot: string, private context: vscode.ExtensionContext, actions: ActionCollection) {
+        this.testRunner = new TestRunner(projectRoot, actions);
         this.collection =  new TrialCollection(context, this.testRunner);
 
         this.testRunner.onResult((subpackage: string, suite: string, name: string) => {

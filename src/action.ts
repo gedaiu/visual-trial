@@ -55,6 +55,11 @@ export class ActionCollection {
 
     constructor() {
         this.statusBarItem = window.createStatusBarItem();
+        this.statusBarItem.command = "showTrialActions";
+    }
+
+    getNames() : string[] {
+        return this.actions.map(a => a.name);
     }
 
     push(action: Action) {
@@ -63,7 +68,7 @@ export class ActionCollection {
     }
 
     cancel(name: string) {
-        this.actions.filter(a => a.name == name).filter(a => a.isRunning).forEach(a => a.cancel());
+        this.actions.filter(a => a.name == name).forEach(a => a.cancel());
         this.actions = this.actions.filter(a => a.name != name);
         this.nextAction();
     }
