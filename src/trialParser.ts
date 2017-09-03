@@ -35,7 +35,11 @@ export class TrialParser {
             }
 
             if(this.lastResult) {
-                this.parseProperty(line);
+                if(this.lastResult.error) {
+                    this.lastResult.error += line + "\n";
+                } else {
+                    this.parseProperty(line);
+                }
             }
         });
     }
@@ -57,8 +61,24 @@ export class TrialParser {
                 this.lastResult.test = value;
                 break;
 
-            case "status":                 
+            case "status":
                 this.lastResult.status = value;
+                break;
+            
+            case "file":
+                this.lastResult.file = value;
+                break;
+
+            case "message":
+                this.lastResult.message = value;
+                break;
+
+            case "line":
+                this.lastResult.line = parseInt(value);
+                break;
+
+            case "error":
+                this.lastResult.error = value + "\n";
                 break;
         }
     }
@@ -68,5 +88,10 @@ export class TestResult {
     status: string;
     suite: string;
     test: string;
+
+    file: string;
+    line: number;
+    message: string;
+    error: string;
 }
 

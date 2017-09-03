@@ -27,4 +27,37 @@ suite("Visual Trial reporter protocol", () => {
         "status:success\n" + 
         "END TEST;");
     });
+
+    test("It should parse a failed test result", (done) => {
+        var parser = new TrialParser();
+
+        parser.onTestResult((result: TestResult) => {
+            should(result.suite).equal("trial.discovery.testclass.OtherTestSuite");
+            should(result.test).equal("Some other name");
+            should(result.status).equal("failure");
+            should(result.file).equal("unknown");
+            should(result.line).equal(0);
+            should(result.message).equal("message");
+            should(result.error).equal("fluentasserts.core.base.TestException@unknown(0): message\n\n" +
+                "    Extra:a\n" +
+                "  Missing:b\n\n");
+
+            done();
+        });
+
+        parser.setString("BEGIN TEST;\n" + 
+        "suite:trial.discovery.testclass.OtherTestSuite\n" + 
+        "test:Some other name\n" + 
+        "status:failure\n" +
+        "file:unknown\n" +
+        "line:0\n" +
+        "message:message\n" +
+        "error:fluentasserts.core.base.TestException@unknown(0): message\n\n" +
+        "    Extra:a\n" +
+        "  Missing:b\n\n" +
+        "END TEST;\n");
+    });
+
+
+    
 });
