@@ -1,3 +1,5 @@
+import { TestResult, TestState } from "./testRunner";
+
 export class TrialParser {
     private eventFunction: (result: TestResult) => void;
     private lastResult: TestResult = null;
@@ -47,7 +49,7 @@ export class TrialParser {
     private parseProperty(line: string) {
         var pieces = line.split(":");
         var property = pieces[0];
-        
+
         pieces.shift();
         var value = pieces.join(":");
 
@@ -62,9 +64,9 @@ export class TrialParser {
                 break;
 
             case "status":
-                this.lastResult.status = value;
+                this.lastResult.status = value == "success" ? TestState.success : TestState.failure;
                 break;
-            
+
             case "file":
                 this.lastResult.file = value;
                 break;
@@ -83,15 +85,3 @@ export class TrialParser {
         }
     }
 }
-
-export class TestResult {
-    status: string;
-    suite: string;
-    test: string;
-
-    file: string;
-    line: number;
-    message: string;
-    error: string;
-}
-

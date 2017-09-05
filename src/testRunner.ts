@@ -4,14 +4,25 @@ import { TrialRootNode } from "./nodes/trialRootNode";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter, Event } from "vscode";
-import { TrialParser, TestResult } from "./trialParser";
+import { TrialParser } from "./trialParser";
+
+export class TestResult {
+    status: TestState;
+    suite: string;
+    test: string;
+
+    file: string;
+    line: number;
+    message: string;
+    error: string;
+}
 
 export enum TestState {
-    unknown,
-    success,
-    failure,
-    run,
-    wait
+    unknown = "unknown",
+    success = "success",
+    failure = "failure",
+    run = "run",
+    wait = "wait"
 }
 
 export class TestRunner {
@@ -55,7 +66,7 @@ export class TestRunner {
     private start(options: Array<string>, done) : ChildProcess {
         this.output.appendLine("> trial " + options.join(' '));
         var proc = spawn("trial", options, { cwd: this.projectRoot });
-        
+
         proc.stdout.on('data', (data) => {
             this.output.append(data.toString());
         });
@@ -138,11 +149,11 @@ export class TestRunner {
                         reject(e);
                     }
                 });
-            }, () => { 
+            }, () => {
                 this.testsPromise[key] = null;
 
                 if(trialProcess) {
-                    trialProcess.kill(); 
+                    trialProcess.kill();
                 }
 
                 reject(key + " was canceled.");
@@ -213,7 +224,7 @@ export class TestRunner {
 
         this.actions.push(new Action(name, (done) => {
             trialProcess = this.start(options, done);
-    
+
             trialProcess.stdout.on('data', (data) => {
                 this.trialParser.setData(data);
             });
@@ -222,6 +233,36 @@ export class TestRunner {
                 trialProcess.kill();
             }
         }));
+    }
+
+    private setTestState(subpackage: string, suite: string, test: string, state: TestState) {
+        if(!this.results[subpackage]) {
+            this.results[subpackage] = {};
+        }
+
+        if(!this.results[subpackage][suite]) {
+            this.results[subpackage][suite] = {};
+        }
+
+        var result: TestResult = this.results[subpackage][suite][test];
+
+        if(!result) {
+            result = {
+                status: state,
+                suite: suite,
+                test: test,
+
+                file: null,
+                line: null,
+                message: null,
+                error: null
+            };
+        } else {
+            result.status = state;
+        }
+
+        this.results[subpackage][suite][test] = result;
+        this.notify(subpackage, suite, test);
     }
 
     runTest(node: TestCaseTrialNode) {
@@ -242,13 +283,14 @@ export class TestRunner {
         options.push("-r");
         options.push("visualtrial");
 
+        this.setTestState(this.runningSubpackage, node.suite, node.name, TestState.wait);
         this.createRunTestAction("run test " + this.runningSubpackage + "#" + testName, options, node.subpackage);
     }
 
     runAll(node: TrialRootNode) {
         this._onClearResults.fire();
         this.runningSubpackage = node.subpackage;
-        
+
         var options = [];
 
         if(this.runningSubpackage.indexOf(":") === 0) {

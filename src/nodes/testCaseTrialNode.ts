@@ -1,6 +1,7 @@
 import { TrialNode } from "../trialTestsDataProvider";
 import { TrialCollection } from "./trialCollection";
 import { Uri, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { TestState } from "../testRunner";
 
 export interface TestLocation {
     fileName: string;
@@ -17,7 +18,7 @@ export class TestCaseTrialNode implements TrialNode {
     constructor(public subpackage: string,
                 public suite: string,
                 public name: string,
-                public location: TestLocation, 
+                public location: TestLocation,
                 private collection: TrialCollection) {
 
     }
@@ -29,8 +30,16 @@ export class TestCaseTrialNode implements TrialNode {
             return this.collection.icon('unknown.svg');
         }
 
-        if(result.status == "success") {
+        if(result.status == TestState.success) {
             return this.collection.icon('ok.svg');
+        }
+
+        if(result.status == TestState.run) {
+            return this.collection.icon('run.gif');
+        }
+
+        if(result.status == TestState.wait) {
+            return this.collection.icon('wait.gif');
         }
 
         return this.collection.icon('not_ok.svg');

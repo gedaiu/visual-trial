@@ -22,7 +22,7 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     private collection: TrialCollection;
 
     constructor(public projectRoot: string, private context: vscode.ExtensionContext, private testRunner: TestRunner) {
-        this.collection =  new TrialCollection(context, this.testRunner);
+        this.collection = new TrialCollection(context, this.testRunner);
 
         this.testRunner.onResult((data) => {
             this.refresh(this.collection.getSuite(data[0], data[1]));
