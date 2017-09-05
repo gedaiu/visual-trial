@@ -27,6 +27,7 @@ export class TrialParser {
         data.split("\n").forEach((line: string) => {
             if(line === "BEGIN TEST;") {
                 this.lastResult = new TestResult();
+                this.lastResult.status = TestState.run;
                 return;
             }
 
@@ -44,6 +45,10 @@ export class TrialParser {
                 }
             }
         });
+
+        if(this.lastResult != null && this.lastResult.suite && this.lastResult.test && this.lastResult.status) {
+            this.notify(this.lastResult);
+        }
     }
 
     private parseProperty(line: string) {

@@ -6,9 +6,26 @@ import * as should from 'should';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
-import { TrialParser, TestResult } from "../src/trialParser";
+import { TrialParser } from "../src/trialParser";
+import { TestResult } from "../src/testRunner";
 
 suite("Visual Trial reporter protocol", () => {
+
+    test("It should send a run status after the test and suite was set", (done) => {
+        var parser = new TrialParser();
+
+        parser.onTestResult((result: TestResult) => {
+            should(result.status).equal("run");
+            should(result.suite).equal("trial.discovery.testclass.OtherTestSuite");
+            should(result.test).equal("Some other name");
+
+            done();
+        });
+
+        parser.setString("BEGIN TEST;\n" +
+        "suite:trial.discovery.testclass.OtherTestSuite\n" +
+        "test:Some other name\n");
+    });
 
     test("It should parse a success test result", (done) => {
         var parser = new TrialParser();
@@ -21,10 +38,10 @@ suite("Visual Trial reporter protocol", () => {
             done();
         });
 
-        parser.setString("BEGIN TEST;\n" + 
-        "suite:trial.discovery.testclass.OtherTestSuite\n" + 
-        "test:Some other name\n" + 
-        "status:success\n" + 
+        parser.setString("BEGIN TEST;\n" +
+        "suite:trial.discovery.testclass.OtherTestSuite\n" +
+        "test:Some other name\n" +
+        "status:success\n" +
         "END TEST;");
     });
 
@@ -45,9 +62,9 @@ suite("Visual Trial reporter protocol", () => {
             done();
         });
 
-        parser.setString("BEGIN TEST;\n" + 
-        "suite:trial.discovery.testclass.OtherTestSuite\n" + 
-        "test:Some other name\n" + 
+        parser.setString("BEGIN TEST;\n" +
+        "suite:trial.discovery.testclass.OtherTestSuite\n" +
+        "test:Some other name\n" +
         "status:failure\n" +
         "file:unknown\n" +
         "line:0\n" +
@@ -59,5 +76,5 @@ suite("Visual Trial reporter protocol", () => {
     });
 
 
-    
+
 });
