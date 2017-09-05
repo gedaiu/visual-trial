@@ -1,5 +1,5 @@
 import { languages, Uri, Range, Diagnostic, DiagnosticSeverity } from "vscode";
-import { TestResult } from "./trialParser";
+import { TestResult } from "./testRunner";
 
 export class TestDiagnostics {
     private diagnosticCollection = languages.createDiagnosticCollection("Trial");
@@ -15,7 +15,7 @@ export class TestDiagnostics {
             this.diagnostics.set(fileName, []);
         }
 
-        this.diagnostics.get(fileName).push(new Diagnostic(new Range(result.line - 1, 0, result.line, 0), result.message, DiagnosticSeverity.Error)); 
+        this.diagnostics.get(fileName).push(new Diagnostic(new Range(result.line - 1, 0, result.line, 0), result.message, DiagnosticSeverity.Error));
 
         this.diagnosticCollection.set(Uri.file(fileName), this.diagnostics.get(fileName));
     }

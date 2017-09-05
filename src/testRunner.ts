@@ -265,6 +265,30 @@ export class TestRunner {
         this.notify(subpackage, suite, test);
     }
 
+    private setPackageState(subpackage: string, state: TestState) {
+        if(!this.cachedTests[subpackage]) {
+            return;
+        }
+
+        var _this = this;
+        function setCollectionState(collection: string, obj) {
+            if (Array.isArray(obj)) {
+                obj.forEach((a) => {
+                    _this.setTestState(subpackage, collection, a.name, state);
+                });
+
+                return;
+            }
+
+            const pre = collection === "" ? "" : collection + ".";
+            Object.keys(obj).forEach((a) => {
+                setCollectionState(pre + a, obj[a]);
+            });
+        }
+
+        setCollectionState("", this.cachedTests[subpackage]);
+    }
+
     runTest(node: TestCaseTrialNode) {
         this._onClearResults.fire();
 
@@ -288,8 +312,8 @@ export class TestRunner {
     }
 
     runAll(node: TrialRootNode) {
-        this._onClearResults.fire();
         this.runningSubpackage = node.subpackage;
+        this._onClearResults.fire();
 
         var options = [];
 
@@ -300,6 +324,7 @@ export class TestRunner {
         options.push("-r");
         options.push("visualtrial");
 
+        this.setPackageState(this.runningSubpackage, TestState.wait);
         this.createRunTestAction("run all " + this.runningSubpackage, options, node.subpackage);
     }
 }
