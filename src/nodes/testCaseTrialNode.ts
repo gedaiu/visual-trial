@@ -26,7 +26,7 @@ export class TestCaseTrialNode implements TrialNode {
     getIcon() : { light: string | Uri; dark: string | Uri } {
         var result = this.collection.getResult(this.subpackage, this.suite, this.name);
 
-        if(!result) {
+        if(!result || result.status == TestState.unknown) {
             return this.collection.icon('unknown.svg');
         }
 
@@ -42,7 +42,11 @@ export class TestCaseTrialNode implements TrialNode {
             return this.collection.icon('wait.gif');
         }
 
-        return this.collection.icon('not_ok.svg');
+        if(result.status == TestState.failure) {
+            return this.collection.icon('not_ok.svg');
+        }
+
+        return this.collection.icon('unknown.svg');
     }
 
     toTreeItem(): TreeItem {

@@ -231,11 +231,17 @@ export class TestRunner {
         }, () => {
             if(trialProcess) {
                 trialProcess.kill();
+
+                this.setPackageState(this.runningSubpackage, (result) => {
+                    if(result.status == TestState.run || result.status == TestState.wait) {
+                        result.status = TestState.unknown;
+                    }
+                });
             }
         }));
     }
 
-    private setTestState(subpackage: string, suite: string, test: string, state: TestState) {
+    private setTestState(subpackage: string, suite: string, test: string, func: (result: TestResult) => void) {
         if(!this.results[subpackage]) {
             this.results[subpackage] = {};
         }
@@ -244,11 +250,9 @@ export class TestRunner {
             this.results[subpackage][suite] = {};
         }
 
-        var result: TestResult = this.results[subpackage][suite][test];
-
-        if(!result) {
-            result = {
-                status: state,
+        if(!this.results[subpackage][suite][test]) {
+            this.results[subpackage][suite][test] = {
+                status: TestState.unknown,
                 suite: suite,
                 test: test,
 
@@ -257,15 +261,14 @@ export class TestRunner {
                 message: null,
                 error: null
             };
-        } else {
-            result.status = state;
         }
 
-        this.results[subpackage][suite][test] = result;
+        func(this.results[subpackage][suite][test]);
+
         this.notify(subpackage, suite, test);
     }
 
-    private setPackageState(subpackage: string, state: TestState) {
+    private setPackageState(subpackage: string, func: (result: TestResult) => void) {
         if(!this.cachedTests[subpackage]) {
             return;
         }
@@ -274,7 +277,7 @@ export class TestRunner {
         function setCollectionState(collection: string, obj) {
             if (Array.isArray(obj)) {
                 obj.forEach((a) => {
-                    _this.setTestState(subpackage, collection, a.name, state);
+                    _this.setTestState(subpackage, collection, a.name, func);
                 });
 
                 return;
@@ -307,7 +310,10 @@ export class TestRunner {
         options.push("-r");
         options.push("visualtrial");
 
-        this.setTestState(this.runningSubpackage, node.suite, node.name, TestState.wait);
+        this.setTestState(this.runningSubpackage, node.suite, node.name, (result) => {
+            result.status = TestState.wait;
+        });
+
         this.createRunTestAction("run test " + this.runningSubpackage + "#" + testName, options, node.subpackage);
     }
 
@@ -324,7 +330,10 @@ export class TestRunner {
         options.push("-r");
         options.push("visualtrial");
 
-        this.setPackageState(this.runningSubpackage, TestState.wait);
+        this.setPackageState(this.runningSubpackage, (result) => {
+            result.status = TestState.wait;
+        });
+
         this.createRunTestAction("run all " + this.runningSubpackage, options, node.subpackage);
     }
 }

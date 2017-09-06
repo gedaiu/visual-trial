@@ -4,11 +4,10 @@ import { TestCaseData } from "./testCaseTrialNode";
 import { TrialCollection } from "./trialCollection";
 
 export class SuiteTrialNode implements TrialNode {
-    constructor(public subpackage: string, 
-                public name: string, 
-                public childElements: Array<TestCaseData> | object, 
+    constructor(public subpackage: string,
+                public name: string,
+                public childElements: Array<TestCaseData> | object,
                 private collection: TrialCollection) {
-
     }
 
     toTreeItem(): TreeItem {
@@ -28,7 +27,7 @@ export class SuiteTrialNode implements TrialNode {
         }
 
         const pre = this.name === "" ? "" : this.name + ".";
-        return Object.keys(this.childElements).map(a => 
+        return Object.keys(this.childElements).map(a =>
             this.collection.getSuite(this.subpackage, pre + a, this.childElements[a])
         );
     }
