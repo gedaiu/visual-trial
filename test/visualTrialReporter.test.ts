@@ -34,6 +34,9 @@ suite("Visual Trial reporter protocol", () => {
             should(result.status).equal("success");
             should(result.suite).equal("trial.discovery.testclass.OtherTestSuite");
             should(result.test).equal("Some other name");
+            should(result.file).equal("base.d");
+            should(result.line).equal(199);
+            should(result.labels.length).equal(0);
 
             done();
         });
@@ -42,6 +45,9 @@ suite("Visual Trial reporter protocol", () => {
         "suite:trial.discovery.testclass.OtherTestSuite\n" +
         "test:Some other name\n" +
         "status:success\n" +
+        "file:base.d\n" +
+        "line:199\n" +
+        "labels:[]\n" +
         "END TEST;");
     });
 
@@ -52,8 +58,8 @@ suite("Visual Trial reporter protocol", () => {
             should(result.suite).equal("trial.discovery.testclass.OtherTestSuite");
             should(result.test).equal("Some other name");
             should(result.status).equal("failure");
-            should(result.file).equal("unknown");
-            should(result.line).equal(0);
+            should(result.errorFile).equal("unknown");
+            should(result.errorLine).equal(0);
             should(result.message).equal("message");
             should(result.error).equal("fluentasserts.core.base.TestException@unknown(0): message\n\n" +
                 "    Extra:a\n" +
@@ -66,8 +72,8 @@ suite("Visual Trial reporter protocol", () => {
         "suite:trial.discovery.testclass.OtherTestSuite\n" +
         "test:Some other name\n" +
         "status:failure\n" +
-        "file:unknown\n" +
-        "line:0\n" +
+        "errorFile:unknown\n" +
+        "errorLine:0\n" +
         "message:message\n" +
         "error:fluentasserts.core.base.TestException@unknown(0): message\n\n" +
         "    Extra:a\n" +

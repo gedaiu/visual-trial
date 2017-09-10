@@ -204,26 +204,38 @@ export class TestRunner {
         return this.subpackagesPromise;
     }
 
-    private createRunTestAction(name: string, options: Array<string>, subpackage: string) {
-        var trialProcess;
+    private createRunTestAction(name: string, options: Array<string>, subpackage: string) : Thenable<void> {
+        return new Promise((resolve, reject) => {
+            var trialProcess;
 
-        this.actions.push(new Action(name, (done) => {
-            trialProcess = this.start(options, done);
+            this.actions.push(new Action(name, (done) => {
+                trialProcess = this.start(options, done);
 
-            trialProcess.stdout.on('data', (data) => {
-                this.trialParser.setData(data);
-            });
-        }, () => {
-            if(trialProcess) {
-                trialProcess.kill();
-
-                this.setPackageState(this.runningSubpackage, (result) => {
-                    if(result.status == TestState.run || result.status == TestState.wait) {
-                        result.status = TestState.unknown;
-                    }
+                trialProcess.stdout.on('data', (data) => {
+                    this.trialParser.setData(data);
                 });
-            }
-        }));
+
+                trialProcess.on('close', (code) => {
+                    if(code != 0) {
+                        return reject();
+                    }
+
+                    resolve();
+                });
+                trialProcess.on('disconnect', reject);
+                trialProcess.on('error', reject);
+            }, () => {
+                if(trialProcess) {
+                    trialProcess.kill();
+
+                    this.setPackageState(this.runningSubpackage, (result) => {
+                        if(result.status == TestState.run || result.status == TestState.wait) {
+                            result.status = TestState.unknown;
+                        }
+                    });
+                }
+            }));
+        });
     }
 
     private setTestState(subpackage: string, suite: string, test: string, func: (result: TestResult) => void) {
@@ -299,7 +311,7 @@ export class TestRunner {
             result.status = TestState.wait;
         });
 
-        this.createRunTestAction("run test " + this.runningSubpackage + "#" + testName, options, node.subpackage);
+        return this.createRunTestAction("run test " + this.runningSubpackage + "#" + testName, options, node.subpackage);
     }
 
     runAll(node: TrialRootNode) {
@@ -319,6 +331,6 @@ export class TestRunner {
             result.status = TestState.wait;
         });
 
-        this.createRunTestAction("run all " + this.runningSubpackage, options, node.subpackage);
+        return this.createRunTestAction("run all " + this.runningSubpackage, options, node.subpackage);
     }
 }

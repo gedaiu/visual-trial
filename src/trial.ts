@@ -20,7 +20,7 @@ export default class Trial {
   get localTrialExecutable(): string {
     var trialPath = path.join(this.extensionPath, "trial-" + Trial.version, "trial");
 
-    if(os.platform().indexOf("win") != -1) {
+    if(os.platform().indexOf("win32") != -1) {
       trialPath += ".exe";
     }
 
@@ -79,7 +79,9 @@ export default class Trial {
 
   checkLocalExecutable(): Thenable<void> {
     return new Promise((resolve, reject) => {
-      if (fs.existsSync(this.localTrialExecutable)) {
+      var exec = this.localTrialExecutable;
+
+      if (fs.existsSync(exec)) {
         this.output.appendLine("Trial v" + Trial.version + " is already compiled.");
         resolve();
         return;

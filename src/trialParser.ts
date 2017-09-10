@@ -76,12 +76,20 @@ export class TrialParser {
                 this.lastResult.file = value;
                 break;
 
+            case "errorFile":
+                this.lastResult.errorFile = value;
+                break;
+
             case "message":
                 this.lastResult.message = value;
                 break;
 
             case "line":
                 this.lastResult.line = parseInt(value);
+                break;
+
+            case "errorLine":
+                this.lastResult.errorLine = parseInt(value);
                 break;
 
             case "error":
