@@ -88,6 +88,12 @@ export class TrialParser {
                 this.lastResult.line = parseInt(value);
                 break;
 
+            case "labels":
+                try {
+                    this.lastResult.labels = JSON.parse(value);
+                } catch(e) {}
+                break;
+
             case "errorLine":
                 this.lastResult.errorLine = parseInt(value);
                 break;

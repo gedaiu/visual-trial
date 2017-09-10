@@ -36,7 +36,9 @@ suite("Visual Trial reporter protocol", () => {
             should(result.test).equal("Some other name");
             should(result.file).equal("base.d");
             should(result.line).equal(199);
-            should(result.labels.length).equal(0);
+            should(result.labels.length).equal(2);
+            should(result.labels[0].name).equal("name");
+            should(result.labels[0].value).equal("value");
 
             done();
         });
@@ -47,7 +49,7 @@ suite("Visual Trial reporter protocol", () => {
         "status:success\n" +
         "file:base.d\n" +
         "line:199\n" +
-        "labels:[]\n" +
+        "labels:[{ \"name\": \"name\", \"value\": \"value\" }, { \"name\": \"name1\", \"value\": \"value1\" }]\n" +
         "END TEST;");
     });
 
