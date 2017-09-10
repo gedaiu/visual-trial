@@ -1,11 +1,10 @@
-
 import { ExtensionContext, Uri } from "vscode";
 import { TestRunner } from "../testRunner";
 import { TrialRootNode } from "./trialRootNode";
 import { TestCaseTrialNode, TestLocation } from "./testCaseTrialNode";
 import { SuiteTrialNode } from "./suiteTrialNode";
+import { TestResult } from "../testResult";
 import * as path from 'path';
-import { TestResult } from "../trialParser";
 
 export class TrialCollection {
     private subpackages = {};
@@ -23,7 +22,7 @@ export class TrialCollection {
 
         return this.subpackages[name];
     }
-    
+
     getSuite(subpackage: string, suite: string, content: Array<TestCaseTrialNode> | object | null = null) {
         const key = subpackage + "#" + suite;
 
@@ -40,7 +39,7 @@ export class TrialCollection {
 
     getTest(subpackage: string, suite: string, name: string, location: TestLocation | null = null) : TestCaseTrialNode {
         const key = subpackage + "#" + suite + "#" + name;
-        
+
         if(!this.tests[key]) {
             this.tests[key] = new TestCaseTrialNode(subpackage, suite, name, location, this);
         }

@@ -1,6 +1,6 @@
 import { TreeItem, TreeItemCollapsibleState, ExtensionContext } from "vscode";
 import { TrialNode } from "../trialTestsDataProvider";
-import { TestState, TestRunner } from "../testRunner";
+import { TestRunner } from "../testRunner";
 import { TrialCollection } from "./trialCollection";
 
 export class TrialRootNode implements TrialNode {
@@ -31,7 +31,7 @@ export class TrialRootNode implements TrialNode {
             this.testRunner.getTests(this.subpackage).then((description: object) => {
                 this.testFetcher = null;
 
-                let items: TrialNode[] = Object.keys(description).map(a => 
+                let items: TrialNode[] = Object.keys(description).map(a =>
                     this.collection.getSuite(this.subpackage, a, description[a])
                 );
 

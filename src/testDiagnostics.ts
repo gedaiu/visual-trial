@@ -1,5 +1,5 @@
 import { languages, Uri, Range, Diagnostic, DiagnosticSeverity } from "vscode";
-import { TestResult } from "./testRunner";
+import { TestResult } from "./testResult";
 
 export class TestDiagnostics {
     private diagnosticCollection = languages.createDiagnosticCollection("Trial");

@@ -5,25 +5,7 @@ import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter, Event } from "vscode";
 import { TrialParser } from "./trialParser";
-
-export class TestResult {
-    status: TestState;
-    suite: string;
-    test: string;
-
-    file: string;
-    line: number;
-    message: string;
-    error: string;
-}
-
-export enum TestState {
-    unknown = "unknown",
-    success = "success",
-    failure = "failure",
-    run = "run",
-    wait = "wait"
-}
+import { TestResult, TestState } from "./testResult";
 
 export class TestRunner {
     private subpackagesPromise: Thenable<string[]>;
@@ -40,6 +22,9 @@ export class TestRunner {
 
     private _onResult: EventEmitter<any> = new EventEmitter<any>();
     readonly onResult: Event<any> = this._onResult.event;
+
+    private _onFinish: EventEmitter<any> = new EventEmitter<any>();
+    readonly onFinish: Event<any> = this._onFinish.event;
 
     constructor(private projectRoot: string, private actions: ActionCollection) {
         this.trialParser = new TrialParser();

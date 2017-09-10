@@ -1,7 +1,7 @@
 import { TrialNode } from "../trialTestsDataProvider";
 import { TrialCollection } from "./trialCollection";
 import { Uri, TreeItem, TreeItemCollapsibleState } from "vscode";
-import { TestState } from "../testRunner";
+import { TestState } from "../testResult";
 
 export interface TestLocation {
     fileName: string;

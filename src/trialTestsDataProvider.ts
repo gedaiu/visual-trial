@@ -2,7 +2,7 @@ import { ExtensionContext, TreeDataProvider, EventEmitter, TreeItem, Event, wind
 import * as ChildProcess from "child_process"
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { TestState, TestRunner } from "./testRunner";
+import { TestRunner } from "./testRunner";
 import { TrialCollection } from "./nodes/trialCollection";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { TrialRootNode } from "./nodes/trialRootNode";
@@ -43,14 +43,6 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
 
     public refresh(node: TrialNode) {
         this._onDidChangeTreeData.fire(node);
-    }
-
-    public runTest(node: TestCaseTrialNode) {
-        this.testRunner.runTest(node);
-    }
-
-    public runAll(node: TrialRootNode) {
-        this.testRunner.runAll(node);
     }
 
     public getChildren(element?: TrialNode): TrialNode[] | Thenable<TrialNode[]> {

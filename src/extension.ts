@@ -10,12 +10,12 @@ import { TestLocation } from "./nodes/testCaseTrialNode";
 import { ActionCollection } from "./action";
 import { ActionsPresenter } from "./actionsPresenter";
 import { TestRunner } from "./testRunner";
-import { TestResult } from "./trialParser";
 import { TestDiagnostics } from "./testDiagnostics";
+import { TestResult, TestState } from "./testResult";
+import Trial from "./trial";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+
+function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     const actions = new ActionCollection();
     const actionsPresenter = new ActionsPresenter(actions);
     const testRunner = new TestRunner(vscode.workspace.rootPath, actions);
@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
     testRunner.onResult((data) => {
         var result: TestResult = testRunner.getResult(data[0], data[1], data[2]);
 
-        if(result.status != "success") {
+        if(result.status == TestState.failure) {
             var fileName;
 
             if(path.isAbsolute(result.file)) {
@@ -38,11 +38,10 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
                 fileName = path.join(vscode.workspace.rootPath, result.file);
             }
-            
+
             testDiagnostics.add(fileName, result);
         }
     });
-
 
     vscode.window.registerTreeDataProvider('trialTests', trialTests);
 
@@ -70,11 +69,23 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     vscode.commands.registerCommand('runTest', node => {
-        trialTests.runTest(node);
+        testRunner.runTest(node);
     });
 
     vscode.commands.registerCommand('runAll', node => {
-        trialTests.runAll(node);
+        testRunner.runAll(node);
+    });
+}
+
+// this method is called when your extension is activated
+// your extension is activated the very first time the command is executed
+export function activate(context: vscode.ExtensionContext) {
+    var trial = new Trial(context.extensionPath);
+
+    trial.waitToBeReady().then(() => {
+        initExtension(context, trial);
+    }, (error) => {
+        vscode.window.showErrorMessage("Trial setup error: " + error);
     });
 }
 

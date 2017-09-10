@@ -1,4 +1,4 @@
-import { TestResult, TestState } from "./testRunner";
+import { TestResult, TestState } from "./testResult";
 
 export class TrialParser {
     private eventFunction: (result: TestResult) => void;

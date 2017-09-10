@@ -7,7 +7,7 @@ import * as should from 'should';
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import { TrialParser } from "../src/trialParser";
-import { TestResult } from "../src/testRunner";
+import { TestResult } from "../src/testResult";
 
 suite("Visual Trial reporter protocol", () => {
 
