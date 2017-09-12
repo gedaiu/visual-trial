@@ -18,7 +18,7 @@ import Trial from "./trial";
 function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     const actions = new ActionCollection();
     const actionsPresenter = new ActionsPresenter(actions);
-    const testRunner = new TestRunner(vscode.workspace.rootPath, actions);
+    const testRunner = new TestRunner(trial, actions);
     const testDiagnostics = new TestDiagnostics();
 
     const trialTests = new TrialTestsDataProvider(vscode.workspace.rootPath, context, testRunner);
@@ -33,10 +33,10 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
         if(result.status == TestState.failure) {
             var fileName;
 
-            if(path.isAbsolute(result.file)) {
-                fileName = result.file;
+            if(path.isAbsolute(result.errorFile)) {
+                fileName = result.errorFile;
             } else {
-                fileName = path.join(vscode.workspace.rootPath, result.file);
+                fileName = path.join(vscode.workspace.rootPath, result.errorFile);
             }
 
             testDiagnostics.add(fileName, result);
@@ -80,7 +80,7 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-    var trial = new Trial(context.extensionPath);
+    var trial = new Trial(context.extensionPath, vscode.workspace.rootPath);
 
     trial.waitToBeReady().then(() => {
         initExtension(context, trial);

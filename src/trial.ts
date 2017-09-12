@@ -4,12 +4,13 @@ var os = require('os');
 
 import { ChildProcess, spawn } from "child_process";
 import * as vscode from 'vscode';
+import SubpackagesAction from "./actions/subpackagesAction";
 
 export default class Trial {
   private output: vscode.OutputChannel;
   private static version = "0.3.0";
 
-  constructor(private extensionPath: string) {
+  constructor(private extensionPath: string, private projectRoot: string) {
     this.output = vscode.window.createOutputChannel("Trial setup");
   }
 
@@ -102,5 +103,59 @@ export default class Trial {
         }, reject);
       }, reject);
     });
+  }
+
+  getSubpackages(callback) {
+    let action = new SubpackagesAction("trial", this.projectRoot, callback);
+
+    action.onOutput((text) => {
+      this.output.append(text);
+    });
+
+    return action;
+  }
+
+  start(options: Array<string>, done) : ChildProcess {
+    this.output.appendLine("> trial " + options.join(' '));
+    var proc = spawn("trial", options, { cwd: this.projectRoot });
+
+    proc.stdout.on('data', (data) => {
+        this.output.append(data.toString());
+    });
+
+    proc.stderr.on('data', (data) => {
+        this.output.append(data.toString());
+    });
+
+    proc.on('close', (code) => {
+        this.output.appendLine(`\ntrial process exited with code ${code}\n\n`);
+        if(code != 0) {
+            vscode.window.showErrorMessage(`trial process exited with code ${code}`);
+        }
+
+        if(done) {
+            done();
+        }
+    });
+
+    proc.on('disconnect', () => {
+        this.output.appendLine(`\ntrial process disconnected\n\n`);
+        vscode.window.showErrorMessage(`trial process disconnected`);
+
+        if(done) {
+            done();
+        }
+    });
+
+    proc.on('error', (err) => {
+        this.output.appendLine(`\ntrial process error: ` + err + `\n\n`);
+        vscode.window.showErrorMessage(`trial process error: ` + err);
+
+        if(done) {
+            done();
+        }
+    });
+
+    return proc;
   }
 }

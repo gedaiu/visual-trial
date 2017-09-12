@@ -6,6 +6,7 @@ import { ChildProcess, spawn } from "child_process";
 import { EventEmitter, Event } from "vscode";
 import { TrialParser } from "./trialParser";
 import { TestResult, TestState } from "./testResult";
+import Trial from "./trial";
 
 export class TestRunner {
     private subpackagesPromise: Thenable<string[]>;
@@ -26,7 +27,7 @@ export class TestRunner {
     private _onFinish: EventEmitter<any> = new EventEmitter<any>();
     readonly onFinish: Event<any> = this._onFinish.event;
 
-    constructor(private projectRoot: string, private actions: ActionCollection) {
+    constructor(private trial: Trial, private actions: ActionCollection) {
         this.trialParser = new TrialParser();
         this.output = vscode.window.createOutputChannel("Trial");
 
@@ -48,50 +49,6 @@ export class TestRunner {
         this._onResult.fire([subpackage, suite, test]);
     }
 
-    private start(options: Array<string>, done) : ChildProcess {
-        this.output.appendLine("> trial " + options.join(' '));
-        var proc = spawn("trial", options, { cwd: this.projectRoot });
-
-        proc.stdout.on('data', (data) => {
-            this.output.append(data.toString());
-        });
-
-        proc.stderr.on('data', (data) => {
-            this.output.append(data.toString());
-        });
-
-        proc.on('close', (code) => {
-            this.output.appendLine(`\ntrial process exited with code ${code}\n\n`);
-            if(code != 0) {
-                vscode.window.showErrorMessage(`trial process exited with code ${code}`);
-            }
-
-            if(done) {
-                done();
-            }
-        });
-
-        proc.on('disconnect', () => {
-            this.output.appendLine(`\ntrial process disconnected\n\n`);
-            vscode.window.showErrorMessage(`trial process disconnected`);
-
-            if(done) {
-                done();
-            }
-        });
-
-        proc.on('error', (err) => {
-            this.output.appendLine(`\ntrial process error: ` + err + `\n\n`);
-            vscode.window.showErrorMessage(`trial process error: ` + err);
-
-            if(done) {
-                done();
-            }
-        });
-
-        return proc;
-    }
-
     getTests(subpackage: string = ""): Thenable<object> {
         const key = "getTests" + subpackage;
 
@@ -110,7 +67,7 @@ export class TestRunner {
         this.testsPromise[key] = new Promise((resolve, reject) => {
             let trialProcess;
             this.actions.push(new Action(key, (done) => {
-                trialProcess = this.start(options, done);
+                trialProcess = this.trial.start(options, done);
 
                 let rawDescription = "";
 
@@ -173,31 +130,13 @@ export class TestRunner {
 
         this.subpackagesPromise = new Promise((resolve, reject) => {
             var trialProcess;
-            this.actions.push(new Action("subpackages", (done) => {
-                trialProcess = this.start(["subpackages"], done);
 
-                let rawSubpackages = "";
-
-                trialProcess.stdout.on('data', (data) => {
-                    rawSubpackages += data;
-                });
-
-                trialProcess.on('close', (code) => {
-                    if (code !== 0) {
-                        reject();
-                        return;
-                    }
-
-                    let items = rawSubpackages.trim().split("\n");
-
-                    resolve(items);
-                    this.subpackagesPromise = null;
-                });
-            }, () => {
-                if(trialProcess) {
-                    trialProcess.kill();
-                    reject("Trial subpackages was canceled.");
+            this.actions.push(this.trial.getSubpackages((err, values: string[]) => {
+                if(err) {
+                    return reject(err);
                 }
+
+                resolve(values);
             }));
         });
 
@@ -209,7 +148,7 @@ export class TestRunner {
             var trialProcess;
 
             this.actions.push(new Action(name, (done) => {
-                trialProcess = this.start(options, done);
+                trialProcess = this.trial.start(options, done);
 
                 trialProcess.stdout.on('data', (data) => {
                     this.trialParser.setData(data);
