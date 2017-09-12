@@ -5,6 +5,7 @@ var os = require('os');
 import { ChildProcess, spawn } from "child_process";
 import * as vscode from 'vscode';
 import SubpackagesAction from "./actions/subpackagesAction";
+import GetTestsAction from "./actions/getTestsAction";
 
 export default class Trial {
   private output: vscode.OutputChannel;
@@ -105,8 +106,18 @@ export default class Trial {
     });
   }
 
-  getSubpackages(callback) {
+  getSubpackages(callback) : SubpackagesAction {
     let action = new SubpackagesAction("trial", this.projectRoot, callback);
+
+    action.onOutput((text) => {
+      this.output.append(text);
+    });
+
+    return action;
+  }
+
+  getTests(subpackage: string, callback) : GetTestsAction {
+    let action = new GetTestsAction("trial", this.projectRoot, subpackage, callback);
 
     action.onOutput((text) => {
       this.output.append(text);

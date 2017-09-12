@@ -49,62 +49,6 @@ export class TestRunner {
         this._onResult.fire([subpackage, suite, test]);
     }
 
-    getTests(subpackage: string = ""): Thenable<object> {
-        const key = "getTests" + subpackage;
-
-        if (this.testsPromise[key]) {
-            return this.testsPromise[key];
-        }
-
-        let options = ["describe"];
-
-        if (subpackage.indexOf(":") === 0) {
-            options.push(subpackage);
-        }
-
-        var _this = this;
-
-        this.testsPromise[key] = new Promise((resolve, reject) => {
-            let trialProcess;
-            this.actions.push(new Action(key, (done) => {
-                trialProcess = this.trial.start(options, done);
-
-                let rawDescription = "";
-
-                trialProcess.stdout.on('data', (data) => {
-                    rawDescription += data;
-                });
-
-                trialProcess.on('close', (code) => {
-                    this.testsPromise[key] = null;
-
-                    if (code !== 0) {
-                        reject(`trial process exited with code ${code}`);
-                        return;
-                    }
-
-                    try {
-                        let description = JSON.parse(rawDescription);
-                        resolve(description);
-                        this.cachedTests[subpackage] = description;
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            }, () => {
-                this.testsPromise[key] = null;
-
-                if(trialProcess) {
-                    trialProcess.kill();
-                }
-
-                reject(key + " was canceled.");
-            }));
-        });
-
-        return this.testsPromise[key];
-    }
-
     getResult(subpackage: string, suite: string, testName: string): TestResult | null {
         if(!this.results[subpackage]) {
             return null;
@@ -141,6 +85,20 @@ export class TestRunner {
         });
 
         return this.subpackagesPromise;
+    }
+
+    getTests(subpackage: string = ""): Thenable<object> {
+        return new Promise((resolve, reject) => {
+            var trialProcess;
+
+            this.actions.push(this.trial.getTests(subpackage, (err, values: object) => {
+                if(err) {
+                    return reject(err);
+                }
+
+                resolve(values);
+            }));
+        });
     }
 
     private createRunTestAction(name: string, options: Array<string>, subpackage: string) : Thenable<void> {
