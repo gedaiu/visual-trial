@@ -6,14 +6,15 @@ import { ChildProcess, spawn } from "child_process";
 import * as vscode from 'vscode';
 import SubpackagesAction from "./actions/subpackagesAction";
 import GetTestsAction from "./actions/getTestsAction";
-import RunTestAction from "./actions/runTest";
+import RunTestAction from "./actions/runTestAction";
+import RunAllTestsAction from "./actions/runAllTestsAction";
 
 export default class Trial {
   private output: vscode.OutputChannel;
   private static version = "0.3.0";
 
   constructor(private extensionPath: string, private projectRoot: string) {
-    this.output = vscode.window.createOutputChannel("Trial setup");
+    this.output = vscode.window.createOutputChannel("Trial");
   }
 
   get localTrialFolder(): string {
@@ -173,6 +174,16 @@ export default class Trial {
 
   runTest(subpackage: string, testName: string, callback) : RunTestAction {
     let action = new RunTestAction("trial", this.projectRoot, subpackage, testName, callback);
+
+    action.onOutput((text) => {
+      this.output.append(text);
+    });
+
+    return action;
+  }
+
+  runAllTests(subpackage: string, callback) : RunTestAction {
+    let action = new RunAllTestsAction("trial", this.projectRoot, subpackage, callback);
 
     action.onOutput((text) => {
       this.output.append(text);
