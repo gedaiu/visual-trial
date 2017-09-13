@@ -6,6 +6,7 @@ import { ChildProcess, spawn } from "child_process";
 import * as vscode from 'vscode';
 import SubpackagesAction from "./actions/subpackagesAction";
 import GetTestsAction from "./actions/getTestsAction";
+import RunTestAction from "./actions/runTest";
 
 export default class Trial {
   private output: vscode.OutputChannel;
@@ -168,5 +169,15 @@ export default class Trial {
     });
 
     return proc;
+  }
+
+  runTest(subpackage: string, testName: string, callback) : RunTestAction {
+    let action = new RunTestAction("trial", this.projectRoot, subpackage, testName, callback);
+
+    action.onOutput((text) => {
+      this.output.append(text);
+    });
+
+    return action;
   }
 }

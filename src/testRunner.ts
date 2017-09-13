@@ -32,21 +32,25 @@ export class TestRunner {
         this.output = vscode.window.createOutputChannel("Trial");
 
         this.trialParser.onTestResult((result) => {
-            if(!this.results[this.runningSubpackage]) {
-                this.results[this.runningSubpackage] = {};
-            }
 
-            if(!this.results[this.runningSubpackage][result.suite]) {
-                this.results[this.runningSubpackage][result.suite] = {};
-            }
-
-            this.results[this.runningSubpackage][result.suite][result.test] = result;
-            this.notify(this.runningSubpackage, result.suite, result.test);
         });
     }
 
     private notify(subpackage: string, suite: string, test: string) {
         this._onResult.fire([subpackage, suite, test]);
+    }
+
+    private addResult(subpackage: string, result: TestResult) {
+        if(!this.results[subpackage]) {
+            this.results[subpackage] = {};
+        }
+
+        if(!this.results[subpackage][result.suite]) {
+            this.results[subpackage][result.suite] = {};
+        }
+
+        this.results[subpackage][result.suite][result.test] = result;
+        this.notify(subpackage, result.suite, result.test);
     }
 
     getResult(subpackage: string, suite: string, testName: string): TestResult | null {
@@ -101,7 +105,7 @@ export class TestRunner {
         });
     }
 
-    private createRunTestAction(name: string, options: Array<string>, subpackage: string) : Thenable<void> {
+    private _createRunTestAction(name: string, options: Array<string>, subpackage: string) : Thenable<void> {
         return new Promise((resolve, reject) => {
             var trialProcess;
 
@@ -189,26 +193,21 @@ export class TestRunner {
     runTest(node: TestCaseTrialNode) {
         this._onClearResults.fire();
 
-        this.runningSubpackage = node.subpackage;
-        var testName = node.name;
-
-        var options = [];
-
-        if(this.runningSubpackage.indexOf(":") === 0) {
-            options.push(this.runningSubpackage);
-        }
-
-        options.push("-t");
-        options.push(testName);
-
-        options.push("-r");
-        options.push("visualtrial");
-
-        this.setTestState(this.runningSubpackage, node.suite, node.name, (result) => {
+        this.setTestState(node.subpackage, node.suite, node.name, (result) => {
             result.status = TestState.wait;
         });
 
-        return this.createRunTestAction("run test " + this.runningSubpackage + "#" + testName, options, node.subpackage);
+        var action = this.trial.runTest(node.subpackage, node.name, (err) => {
+            if(err) {
+                vscode.window.showErrorMessage(err);
+            }
+        });
+
+        action.parser.onTestResult((result) => {
+            this.addResult(node.subpackage, result);
+        });
+
+        this.actions.push(action);
     }
 
     runAll(node: TrialRootNode) {
@@ -228,6 +227,6 @@ export class TestRunner {
             result.status = TestState.wait;
         });
 
-        return this.createRunTestAction("run all " + this.runningSubpackage, options, node.subpackage);
+        //return this.createRunTestAction("run all " + this.runningSubpackage, options, node.subpackage);
     }
 }
