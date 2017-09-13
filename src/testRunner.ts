@@ -90,6 +90,7 @@ export class TestRunner {
                     return reject(err);
                 }
 
+                this.cachedTests[subpackage] = values;
                 resolve(values);
             }));
         });
