@@ -139,7 +139,7 @@ export class TestRunner {
             this.addResult(subpackage, result);
         }
 
-        func(this.results[subpackage][suite][test]);
+        func(this.results.get(subpackage).get(suite).get(test));
 
         this.notify(subpackage, suite, test);
     }
