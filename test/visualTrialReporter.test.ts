@@ -34,8 +34,8 @@ suite("Visual Trial reporter protocol", () => {
             should(result.status).equal("success");
             should(result.suite).equal("trial.discovery.testclass.OtherTestSuite");
             should(result.test).equal("Some other name");
-            should(result.file).equal("base.d");
-            should(result.line).equal(199);
+            should(result.location.fileName).equal("base.d");
+            should(result.location.line).equal(199);
             should(result.labels.length).equal(2);
             should(result.labels[0].name).equal("name");
             should(result.labels[0].value).equal("value");

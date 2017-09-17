@@ -22,7 +22,7 @@ export class SuiteTrialNode implements TrialNode {
     getChildren(): TrialNode[] | Thenable<TrialNode[]> {
         if (Array.isArray(this.childElements)) {
             return this.childElements.map(a =>
-                this.collection.getTest(this.subpackage, a.suiteName, a.name, a.location)
+                this.collection.getTest(this.subpackage, a.suiteName, a.name)
             );
         }
 

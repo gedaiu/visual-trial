@@ -73,7 +73,7 @@ export class TrialParser {
                 break;
 
             case "file":
-                this.lastResult.file = value;
+                this.lastResult.location.fileName = value;
                 break;
 
             case "errorFile":
@@ -85,7 +85,7 @@ export class TrialParser {
                 break;
 
             case "line":
-                this.lastResult.line = parseInt(value);
+                this.lastResult.location.line = parseInt(value);
                 break;
 
             case "labels":

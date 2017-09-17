@@ -1,15 +1,16 @@
+import { TestLocation } from "./nodes/testCaseTrialNode";
+
 export class TestResult {
     status: TestState;
     suite: string;
     test: string;
-    file: string;
-    line: number;
-    labels: Label[] = [];
+    location?: TestLocation = {};
+    labels?: Label[] = [];
 
-    errorFile: string;
-    errorLine: number;
-    message: string;
-    error: string;
+    errorFile?: string;
+    errorLine?: number;
+    message?: string;
+    error?: string;
 }
 
 export interface Label {

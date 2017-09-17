@@ -4,21 +4,19 @@ import { Uri, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { TestState } from "../testResult";
 
 export interface TestLocation {
-    fileName: string;
-    line: number;
+    fileName?: string;
+    line?: number;
 }
 
 export interface TestCaseData {
     suiteName: string;
     name: string;
-    location: TestLocation;
 }
 
 export class TestCaseTrialNode implements TrialNode {
     constructor(public subpackage: string,
                 public suite: string,
                 public name: string,
-                public location: TestLocation,
                 private collection: TrialCollection) {
 
     }
@@ -50,12 +48,14 @@ export class TestCaseTrialNode implements TrialNode {
     }
 
     toTreeItem(): TreeItem {
+        const result = this.collection.getResult(this.subpackage, this.suite, this.name);
+
         return {
             label: this.name,
             collapsibleState: TreeItemCollapsibleState.None,
             command: {
                 command: 'goToTestSource',
-                arguments: [ this.location ],
+                arguments: [ result.location ],
                 title: 'Go to the test source'
             },
             contextValue: 'trialTestCase',

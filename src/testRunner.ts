@@ -13,7 +13,6 @@ export class TestRunner {
     private results: Map<string, Map<string, Map<string, TestResult>>> = new Map<string, Map<string, Map<string, TestResult>>>();
 
     private _resultNotification: (subpackage: string, suite: string, name: string) => void;
-    private cachedTests = {};
 
     private _onClearResults: EventEmitter<any> = new EventEmitter<any>();
     readonly onClearResults: Event<any> = this._onClearResults.event;
@@ -31,32 +30,32 @@ export class TestRunner {
     }
 
     private addResult(subpackage: string, result: TestResult) {
-        if(!this.results[subpackage]) {
-            this.results[subpackage] = {};
+        if(!this.results.has(subpackage)) {
+            this.results.set(subpackage, new Map<string, Map<string, TestResult>>());
         }
 
-        if(!this.results[subpackage][result.suite]) {
-            this.results[subpackage][result.suite] = {};
+        if(!this.results.get(subpackage).has(result.suite)) {
+            this.results.get(subpackage).set(result.suite, new Map<string, TestResult>());
         }
 
-        this.results[subpackage][result.suite][result.test] = result;
+        this.results.get(subpackage).get(result.suite).set(result.test, result);
         this.notify(subpackage, result.suite, result.test);
     }
 
     getResult(subpackage: string, suite: string, testName: string): TestResult | null {
-        if(!this.results[subpackage]) {
+        if(!this.results.has(subpackage)) {
             return null;
         }
 
-        if(!this.results[subpackage][suite]) {
+        if(!this.results.get(subpackage).has(suite)) {
             return null;
         }
 
-        if(!this.results[subpackage][suite][testName]) {
+        if(!this.results.get(subpackage).get(suite).get(testName)) {
             return null;
         }
 
-        return this.results[subpackage][suite][testName];
+        return this.results.get(subpackage).get(suite).get(testName);
     }
 
     subpackages(): Thenable<string[]> {
@@ -81,6 +80,37 @@ export class TestRunner {
         return this.subpackagesPromise;
     }
 
+    private cacheTests(subpackage: string, data: object) {
+        if(this.results.has(subpackage)) {
+            this.results.delete(subpackage);
+        }
+
+        const _this = this;
+        function flatten(obj) {
+            if (Array.isArray(obj)) {
+                obj.forEach((a) => {
+                    const result : TestResult = {
+                        status: TestState.unknown,
+                        suite: a.suiteName,
+                        test: a.name,
+                        location: a.location,
+                        labels: a.labels
+                    };
+
+                    _this.addResult(subpackage, result);
+                });
+
+                return;
+            }
+
+            Object.keys(obj).forEach((a) => {
+                flatten(obj[a]);
+            });
+        }
+
+        flatten(data);
+    }
+
     getTests(subpackage: string = ""): Thenable<object> {
         return new Promise((resolve, reject) => {
             var trialProcess;
@@ -90,32 +120,23 @@ export class TestRunner {
                     return reject(err);
                 }
 
-                this.cachedTests[subpackage] = values;
+                this.cacheTests(subpackage, values);
                 resolve(values);
             }));
         });
     }
 
     private setTestState(subpackage: string, suite: string, test: string, func: (result: TestResult) => void) {
-        if(!this.results[subpackage]) {
-            this.results[subpackage] = {};
-        }
-
-        if(!this.results[subpackage][suite]) {
-            this.results[subpackage][suite] = {};
-        }
-
-        if(!this.results[subpackage][suite][test]) {
-            this.results[subpackage][suite][test] = {
+        if(!this.results.has(subpackage) || 
+           !this.results.get(subpackage).has(suite) || 
+           !this.results.get(subpackage).get(suite).has(test)) {
+            const result = {
                 status: TestState.unknown,
                 suite: suite,
-                test: test,
-
-                file: null,
-                line: null,
-                message: null,
-                error: null
+                test: test
             };
+
+            this.addResult(subpackage, result);
         }
 
         func(this.results[subpackage][suite][test]);
@@ -124,27 +145,16 @@ export class TestRunner {
     }
 
     private setPackageState(subpackage: string, func: (result: TestResult) => void) {
-        if(!this.cachedTests[subpackage]) {
+        if(!this.results.has(subpackage)) {
             return;
         }
 
-        var _this = this;
-        function setCollectionState(collection: string, obj) {
-            if (Array.isArray(obj)) {
-                obj.forEach((a) => {
-                    _this.setTestState(subpackage, collection, a.name, func);
-                });
-
-                return;
-            }
-
-            const pre = collection === "" ? "" : collection + ".";
-            Object.keys(obj).forEach((a) => {
-                setCollectionState(pre + a, obj[a]);
+        this.results.get(subpackage).forEach((suite) => {
+            suite.forEach((result) => {
+                func(result);
+                this.notify(subpackage, result.suite, result.test);
             });
-        }
-
-        setCollectionState("", this.cachedTests[subpackage]);
+        });
     }
 
     runTest(node: TestCaseTrialNode) {

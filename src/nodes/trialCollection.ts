@@ -37,15 +37,11 @@ export class TrialCollection {
         return this.suites[key];
     }
 
-    getTest(subpackage: string, suite: string, name: string, location: TestLocation | null = null) : TestCaseTrialNode {
+    getTest(subpackage: string, suite: string, name: string) : TestCaseTrialNode {
         const key = subpackage + "#" + suite + "#" + name;
 
         if(!this.tests[key]) {
-            this.tests[key] = new TestCaseTrialNode(subpackage, suite, name, location, this);
-        }
-
-        if(location != null) {
-            this.tests[key].location = location;
+            this.tests[key] = new TestCaseTrialNode(subpackage, suite, name, this);
         }
 
         return this.tests[key];
