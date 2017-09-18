@@ -2,8 +2,8 @@
     "name": "visual-trial",
     "displayName": "visual-trial",
     "description": "Visual Studio Code integration for the Trial test runner.",
-    "version": "0.0.1",
-    "publisher": "gedaiu",
+    "version": "0.1.0",
+    "publisher": "bosz",
     "engines": {
         "vscode": "^1.15.0"
     },

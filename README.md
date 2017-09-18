@@ -24,7 +24,7 @@ There are no settings right now...
 
 ## Known Issues
 
-This is an experimental project and it is under development. It is `101% works on my machine` and I am trying to improve it
+This is an experimental project and it is under development. It `101% works on my machine` and I am trying to improve it
 all of the time. If you find an issue, please add it to the [issue section](https://github.com/gedaiu/visual-trial/issues), on GitHub.
 
 ## Release Notes
