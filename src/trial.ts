@@ -11,7 +11,7 @@ import RunAllTestsAction from "./actions/runAllTestsAction";
 
 export default class Trial {
   private output: vscode.OutputChannel;
-  private static version = "0.3.0";
+  private static version = "0.4.0";
 
   constructor(private extensionPath: string, private projectRoot: string) {
     this.output = vscode.window.createOutputChannel("Trial");
@@ -22,7 +22,7 @@ export default class Trial {
   }
 
   get localTrialExecutable(): string {
-    var trialPath = path.join(this.extensionPath, "trial-" + Trial.version, "trial");
+    var trialPath = path.join(this.localTrialFolder, "trial");
 
     if(os.platform().indexOf("win32") != -1) {
       trialPath += ".exe";
@@ -119,7 +119,7 @@ export default class Trial {
   }
 
   getTests(subpackage: string, callback) : GetTestsAction {
-    let action = new GetTestsAction("trial", this.projectRoot, subpackage, callback);
+    let action = new GetTestsAction(this.localTrialExecutable, this.projectRoot, subpackage, callback);
 
     action.onOutput((text) => {
       this.output.append(text);
@@ -128,52 +128,8 @@ export default class Trial {
     return action;
   }
 
-  start(options: Array<string>, done) : ChildProcess {
-    this.output.appendLine("> trial " + options.join(' '));
-    var proc = spawn("trial", options, { cwd: this.projectRoot });
-
-    proc.stdout.on('data', (data) => {
-        this.output.append(data.toString());
-    });
-
-    proc.stderr.on('data', (data) => {
-        this.output.append(data.toString());
-    });
-
-    proc.on('close', (code) => {
-        this.output.appendLine(`\ntrial process exited with code ${code}\n\n`);
-        if(code != 0) {
-            vscode.window.showErrorMessage(`trial process exited with code ${code}`);
-        }
-
-        if(done) {
-            done();
-        }
-    });
-
-    proc.on('disconnect', () => {
-        this.output.appendLine(`\ntrial process disconnected\n\n`);
-        vscode.window.showErrorMessage(`trial process disconnected`);
-
-        if(done) {
-            done();
-        }
-    });
-
-    proc.on('error', (err) => {
-        this.output.appendLine(`\ntrial process error: ` + err + `\n\n`);
-        vscode.window.showErrorMessage(`trial process error: ` + err);
-
-        if(done) {
-            done();
-        }
-    });
-
-    return proc;
-  }
-
   runTest(subpackage: string, testName: string, callback) : RunTestAction {
-    let action = new RunTestAction("trial", this.projectRoot, subpackage, testName, callback);
+    let action = new RunTestAction(this.localTrialExecutable, this.projectRoot, subpackage, testName, callback);
 
     action.onOutput((text) => {
       this.output.append(text);
@@ -183,7 +139,7 @@ export default class Trial {
   }
 
   runAllTests(subpackage: string, callback) : RunTestAction {
-    let action = new RunAllTestsAction("trial", this.projectRoot, subpackage, callback);
+    let action = new RunAllTestsAction(this.localTrialExecutable, this.projectRoot, subpackage, callback);
 
     action.onOutput((text) => {
       this.output.append(text);
