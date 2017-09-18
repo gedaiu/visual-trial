@@ -6,7 +6,6 @@ import { TrialCollection } from "./trialCollection";
 export class SuiteTrialNode implements TrialNode {
     constructor(public subpackage: string,
                 public name: string,
-                public childElements: Array<TestCaseData> | object,
                 private collection: TrialCollection) {
     }
 
@@ -20,15 +19,6 @@ export class SuiteTrialNode implements TrialNode {
     }
 
     getChildren(): TrialNode[] | Thenable<TrialNode[]> {
-        if (Array.isArray(this.childElements)) {
-            return this.childElements.map(a =>
-                this.collection.getTest(this.subpackage, a.suiteName, a.name)
-            );
-        }
-
-        const pre = this.name === "" ? "" : this.name + ".";
-        return Object.keys(this.childElements).map(a =>
-            this.collection.getSuite(this.subpackage, pre + a, this.childElements[a])
-        );
+        return this.collection.getSuiteChilds(this.subpackage, this.name);
     }
 }

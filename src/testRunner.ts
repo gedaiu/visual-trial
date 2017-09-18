@@ -42,6 +42,26 @@ export class TestRunner {
         this.notify(subpackage, result.suite, result.test);
     }
 
+    getSuites(subpackage): string[] {
+        if(!this.results.has(subpackage)) {
+            return [];
+        }
+
+        return Array.from(this.results.get(subpackage).keys());
+    }
+
+    getTestNames(subpackage: string, suite: string) {
+        if(!this.results.has(subpackage)) {
+            return [];
+        }
+
+        if(!this.results.get(subpackage).has(suite)) {
+            return [];
+        }
+
+        return Array.from(this.results.get(subpackage).get(suite).keys());
+    }
+
     getResult(subpackage: string, suite: string, testName: string): TestResult | null {
         if(!this.results.has(subpackage)) {
             return null;

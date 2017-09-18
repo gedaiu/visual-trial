@@ -32,7 +32,7 @@ export class TrialRootNode implements TrialNode {
                 this.testFetcher = null;
 
                 let items: TrialNode[] = Object.keys(description).map(a =>
-                    this.collection.getSuite(this.subpackage, a, description[a])
+                    this.collection.getSuite(this.subpackage, a)
                 );
 
                 resolve(items);

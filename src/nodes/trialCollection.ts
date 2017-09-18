@@ -5,6 +5,7 @@ import { TestCaseTrialNode, TestLocation } from "./testCaseTrialNode";
 import { SuiteTrialNode } from "./suiteTrialNode";
 import { TestResult } from "../testResult";
 import * as path from 'path';
+import { TrialNode } from "../trialTestsDataProvider";
 
 export class TrialCollection {
     private subpackages = {};
@@ -23,18 +24,43 @@ export class TrialCollection {
         return this.subpackages[name];
     }
 
-    getSuite(subpackage: string, suite: string, content: Array<TestCaseTrialNode> | object | null = null) {
+    getSuite(subpackage: string, suite: string) {
         const key = subpackage + "#" + suite;
 
         if(!this.suites[key]) {
-            this.suites[key] = new SuiteTrialNode(subpackage, suite, content, this);
-        }
-
-        if(content != null) {
-            this.suites[key].childElements = content;
+            this.suites[key] = new SuiteTrialNode(subpackage, suite, this);
         }
 
         return this.suites[key];
+    }
+
+    getSuiteChilds(subpackage: string, suite: string) {
+        let elements: TrialNode[] = [];
+
+        var _this = this;
+
+        function getModule(key: string) {
+            if(key.indexOf(suite + ".") != 0) {
+                return "";
+            }
+
+            var other = key.substring(suite.length + 1).split(".");
+
+            return suite + "." + other[0];
+        }
+
+        var suites = this.testRunner.getSuites(subpackage)
+                .map((a) => { return getModule(a); })
+                .filter((v, i, a) => a.indexOf(v) === i) // unique values
+                .filter(a => a != "")
+                .map((a) => { return this.getSuite(subpackage, a); });
+
+        var tests = this.testRunner.getTestNames(subpackage, suite)
+                .map((a) => { return this.getTest(subpackage, suite, a); });
+
+        elements = elements.concat(suites).concat(tests);
+
+        return elements;
     }
 
     getTest(subpackage: string, suite: string, name: string) : TestCaseTrialNode {
