@@ -205,6 +205,16 @@ export class TestRunner {
         });
 
         var action = this.trial.runAllTests(node.subpackage, (err) => {
+            if(this.results.has(node.subpackage)) {
+                this.results.get(node.subpackage).forEach((suite) => {
+                    suite.forEach((result, name) => {
+                        if(result.status === TestState.wait) {
+                            suite.delete(name);
+                        }
+                    });
+                });
+            }
+
             if(err) {
                 vscode.window.showErrorMessage(err);
             }

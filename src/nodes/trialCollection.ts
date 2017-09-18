@@ -53,9 +53,11 @@ export class TrialCollection {
                 .map((a) => { return getModule(a); })
                 .filter((v, i, a) => a.indexOf(v) === i) // unique values
                 .filter(a => a != "")
+                .sort()
                 .map((a) => { return this.getSuite(subpackage, a); });
 
         var tests = this.testRunner.getTestNames(subpackage, suite)
+                .sort()
                 .map((a) => { return this.getTest(subpackage, suite, a); });
 
         elements = elements.concat(suites).concat(tests);
