@@ -109,7 +109,7 @@ export default class Trial {
   }
 
   getSubpackages(callback) : SubpackagesAction {
-    let action = new SubpackagesAction("trial", this.projectRoot, callback);
+    let action = new SubpackagesAction(this.localTrialExecutable, this.projectRoot, callback);
 
     action.onOutput((text) => {
       this.output.append(text);

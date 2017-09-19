@@ -2,10 +2,14 @@
     "name": "visual-trial",
     "displayName": "visual-trial",
     "description": "Visual Studio Code integration for the Trial test runner.",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "publisher": "bosz",
     "engines": {
         "vscode": "^1.15.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gedaiu/visual-trial"
     },
     "categories": [
         "Other"
