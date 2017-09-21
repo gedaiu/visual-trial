@@ -1,0 +1,135 @@
+import { TestResult, TestState } from "./testResult";
+import { EventEmitter, Event } from "vscode";
+
+export default class ResultManager {
+    private results: Map<string, Map<string, Map<string, TestResult>>> = new Map<string, Map<string, Map<string, TestResult>>>();
+    private _onResult: EventEmitter<any> = new EventEmitter<any>();
+    readonly onResult: Event<any> = this._onResult.event;
+
+    private notify(subpackage: string, suite: string, test: string) {
+        this._onResult.fire([subpackage, suite, test]);
+    }
+
+    cache(subpackage: string, data: object) {
+        if(this.results.has(subpackage)) {
+            this.results.delete(subpackage);
+        }
+
+        const _this = this;
+        function flatten(obj) {
+            if (Array.isArray(obj)) {
+                obj.forEach((a) => {
+                    const result : TestResult = {
+                        status: TestState.unknown,
+                        suite: a.suiteName,
+                        test: a.name,
+                        location: a.location,
+                        labels: a.labels
+                    };
+
+                    _this.add(subpackage, result);
+                });
+
+                return;
+            }
+
+            Object.keys(obj).forEach((a) => {
+                flatten(obj[a]);
+            });
+        }
+
+        flatten(data);
+    }
+
+    add(subpackage: string, result: TestResult) {
+        if(!this.results.has(subpackage)) {
+            this.results.set(subpackage, new Map<string, Map<string, TestResult>>());
+        }
+
+        if(!this.results.get(subpackage).has(result.suite)) {
+            this.results.get(subpackage).set(result.suite, new Map<string, TestResult>());
+        }
+
+        this.results.get(subpackage).get(result.suite).set(result.test, result);
+        this.notify(subpackage, result.suite, result.test);
+    }
+
+    getResult(subpackage: string, suite: string, testName: string): TestResult | null {
+        if(!this.results.has(subpackage)) {
+            return null;
+        }
+
+        if(!this.results.get(subpackage).has(suite)) {
+            return null;
+        }
+
+        if(!this.results.get(subpackage).get(suite).get(testName)) {
+            return null;
+        }
+
+        return this.results.get(subpackage).get(suite).get(testName);
+    }
+
+    getSuites(subpackage): string[] {
+        if(!this.results.has(subpackage)) {
+            return [];
+        }
+
+        return Array.from(this.results.get(subpackage).keys());
+    }
+
+    getTestNames(subpackage: string, suite: string) {
+        if(!this.results.has(subpackage)) {
+            return [];
+        }
+
+        if(!this.results.get(subpackage).has(suite)) {
+            return [];
+        }
+
+        return Array.from(this.results.get(subpackage).get(suite).keys());
+    }
+
+    setTestState(subpackage: string, suite: string, test: string, func: (result: TestResult) => void) {
+        if(!this.results.has(subpackage) ||
+           !this.results.get(subpackage).has(suite) ||
+           !this.results.get(subpackage).get(suite).has(test)) {
+            const result = {
+                status: TestState.unknown,
+                suite: suite,
+                test: test
+            };
+
+            this.add(subpackage, result);
+        }
+
+        func(this.results.get(subpackage).get(suite).get(test));
+
+        this.notify(subpackage, suite, test);
+    }
+
+    setPackageState(subpackage: string, func: (result: TestResult) => void) {
+        if(!this.results.has(subpackage)) {
+            return;
+        }
+
+        this.results.get(subpackage).forEach((suite) => {
+            suite.forEach((result) => {
+                func(result);
+                this.notify(subpackage, result.suite, result.test);
+            });
+        });
+    }
+
+    removeWaiting(subpackage: string) {
+        if(this.results.has(subpackage)) {
+            this.results.get(subpackage).forEach((suite) => {
+                suite.forEach((result, name) => {
+                    if(result.status === TestState.wait) {
+                        suite.delete(name);
+                    }
+                });
+            });
+        }
+    }
+}

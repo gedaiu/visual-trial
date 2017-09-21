@@ -49,14 +49,14 @@ export class TrialCollection {
             return suite + "." + other[0];
         }
 
-        var suites = this.testRunner.getSuites(subpackage)
+        var suites = this.testRunner.results.getSuites(subpackage)
                 .map((a) => { return getModule(a); })
                 .filter((v, i, a) => a.indexOf(v) === i) // unique values
                 .filter(a => a != "")
                 .sort()
                 .map((a) => { return this.getSuite(subpackage, a); });
 
-        var tests = this.testRunner.getTestNames(subpackage, suite)
+        var tests = this.testRunner.results.getTestNames(subpackage, suite)
                 .sort()
                 .map((a) => { return this.getTest(subpackage, suite, a); });
 
@@ -76,7 +76,7 @@ export class TrialCollection {
     }
 
     getResult(subpackage: string, suite: string, name: string) : TestResult | null {
-        return this.testRunner.getResult(subpackage, suite, name);
+        return this.testRunner.results.getResult(subpackage, suite, name);
     }
 
     icon(name: string) : { light: string | Uri; dark: string | Uri } {

@@ -6,7 +6,7 @@ export class TestResult {
     test: string;
     location?: TestLocation = {};
     labels?: Label[] = [];
-    error: TestError;
+    error?: TestError;
 }
 
 export class TestError {
@@ -24,6 +24,7 @@ export enum TestState {
     unknown = "unknown",
     success = "success",
     failure = "failure",
+    error = "error",
     run = "run",
     wait = "wait"
 }
