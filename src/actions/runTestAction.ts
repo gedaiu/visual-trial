@@ -29,7 +29,7 @@ export default class RunTestAction extends Action {
 
             process.on('close', (code) => {
                 if (code !== 0) {
-                    return callback(`Trial existed with code ${code}`);
+                    return callback(`Trial failed with code ${code}`);
                 }
 
                 try {
