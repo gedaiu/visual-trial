@@ -7,15 +7,18 @@ import * as should from 'should';
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import { TestDiagnostics } from '../src/testDiagnostics';
-import { TestResult } from '../src/testResult';
+import { TestResult, TestError } from '../src/testResult';
 
 suite("TestDiagnostics", () => {
     test("It should not add a result twice", () => {
         var diagnostics = new TestDiagnostics();
 
         var result = new TestResult();
-        result.errorFile = "someFile.d";
-        result.errorLine = 12;
+        result.error = new TestError();
+        result.error.location = {
+            fileName: "someFile.d",
+            line: 12
+        };
 
         diagnostics.add(result);
         diagnostics.add(result);

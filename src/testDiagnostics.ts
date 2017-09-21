@@ -15,21 +15,22 @@ export class TestDiagnostics {
     add(result: TestResult) {
         var fileName;
 
-        if(path.isAbsolute(result.errorFile)) {
-            fileName = result.errorFile;
+        if(path.isAbsolute(result.error.location.fileName)) {
+            fileName = result.error.location.fileName;
         } else {
             var root = vscode.workspace.rootPath || "";
-            fileName = path.join(root, result.errorFile);
+            fileName = path.join(root, result.error.location.fileName);
         }
 
         if(!this.diagnostics.has(fileName)) {
             this.diagnostics.set(fileName, []);
         }
 
-        var fileDiagnostics = this.diagnostics.get(fileName).filter(a => a.range.start.line != result.errorLine - 1);
+        var fileDiagnostics = this.diagnostics.get(fileName)
+            .filter(a => a.range.start.line != result.error.location.line - 1);
 
         fileDiagnostics.push(
-            new Diagnostic(new Range(result.errorLine - 1, 0, result.errorLine, 0), result.message, DiagnosticSeverity.Error));
+            new Diagnostic(new Range(result.error.location.line - 1, 0, result.error.location.line, 0), result.error.message, DiagnosticSeverity.Error));
 
         this.diagnostics.set(fileName, fileDiagnostics);
 

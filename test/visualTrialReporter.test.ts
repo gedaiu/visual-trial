@@ -60,10 +60,10 @@ suite("Visual Trial reporter protocol", () => {
             should(result.suite).equal("trial.discovery.testclass.OtherTestSuite");
             should(result.test).equal("Some other name");
             should(result.status).equal("failure");
-            should(result.errorFile).equal("unknown");
-            should(result.errorLine).equal(0);
-            should(result.message).equal("message");
-            should(result.error).equal("fluentasserts.core.base.TestException@unknown(0): message\n\n" +
+            should(result.error.location.fileName).equal("unknown");
+            should(result.error.location.line).equal(0);
+            should(result.error.message).equal("message");
+            should(result.error.raw).equal("fluentasserts.core.base.TestException@unknown(0): message\n\n" +
                 "    Extra:a\n" +
                 "  Missing:b\n\n");
 
@@ -82,7 +82,4 @@ suite("Visual Trial reporter protocol", () => {
         "  Missing:b\n\n" +
         "END TEST;\n");
     });
-
-
-
 });

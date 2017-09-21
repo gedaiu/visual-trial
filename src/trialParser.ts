@@ -1,4 +1,4 @@
-import { TestResult, TestState } from "./testResult";
+import { TestResult, TestState, TestError } from "./testResult";
 
 export class TrialParser {
     private eventFunction: (result: TestResult) => void;
@@ -38,8 +38,8 @@ export class TrialParser {
             }
 
             if(this.lastResult) {
-                if(this.lastResult.error) {
-                    this.lastResult.error += line + "\n";
+                if(this.lastResult.error && this.lastResult.error.raw) {
+                    this.lastResult.error.raw += line + "\n";
                 } else {
                     this.parseProperty(line);
                 }
@@ -69,7 +69,14 @@ export class TrialParser {
                 break;
 
             case "status":
-                this.lastResult.status = value == "success" ? TestState.success : TestState.failure;
+                if(value == "success" ) {
+                    this.lastResult.status = TestState.success;
+                } else {
+                    this.lastResult.status = TestState.failure;
+                    this.lastResult.error = new TestError();
+                    this.lastResult.error.location = {};
+                }
+
                 break;
 
             case "file":
@@ -77,11 +84,11 @@ export class TrialParser {
                 break;
 
             case "errorFile":
-                this.lastResult.errorFile = value;
+                this.lastResult.error.location.fileName = value;
                 break;
 
             case "message":
-                this.lastResult.message = value;
+                this.lastResult.error.message = value;
                 break;
 
             case "line":
@@ -95,11 +102,11 @@ export class TrialParser {
                 break;
 
             case "errorLine":
-                this.lastResult.errorLine = parseInt(value);
+                this.lastResult.error.location.line = parseInt(value);
                 break;
 
             case "error":
-                this.lastResult.error = value + "\n";
+                this.lastResult.error.raw = value + "\n";
                 break;
         }
     }

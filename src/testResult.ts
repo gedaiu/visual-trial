@@ -6,11 +6,13 @@ export class TestResult {
     test: string;
     location?: TestLocation = {};
     labels?: Label[] = [];
+    error: TestError;
+}
 
-    errorFile?: string;
-    errorLine?: number;
+export class TestError {
+    location?: TestLocation = {};
     message?: string;
-    error?: string;
+    raw?: string = "";
 }
 
 export interface Label {
