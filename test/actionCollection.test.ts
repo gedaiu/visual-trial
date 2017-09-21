@@ -38,7 +38,7 @@ suite("Action collection", () => {
     test("It should be able to cancel actions", () => {
         var collection = new ActionCollection();
         var cancel = false;
-        
+
         collection.push(new Action("name", () => { }, () => {
             cancel = true;
         }));
@@ -52,7 +52,7 @@ suite("Action collection", () => {
 
     test("It should call cancel function for stoped actions", (done) => {
         var collection = new ActionCollection();
-        
+
         collection.push(new Action("name", () => {
         }));
 

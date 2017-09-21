@@ -31,22 +31,13 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
         var result: TestResult = testRunner.getResult(data[0], data[1], data[2]);
 
         if(result.status == TestState.failure) {
-            var fileName;
-
-            if(path.isAbsolute(result.errorFile)) {
-                fileName = result.errorFile;
-            } else {
-                fileName = path.join(vscode.workspace.rootPath, result.errorFile);
-            }
-
-            testDiagnostics.add(fileName, result);
+            testDiagnostics.add(result);
         }
     });
 
     vscode.window.registerTreeDataProvider('trialTests', trialTests);
 
     vscode.commands.registerCommand('goToTestSource', (location: TestLocation) => {
-
         if(path.isAbsolute(location.fileName)) {
             var fileName = location.fileName;
         } else {

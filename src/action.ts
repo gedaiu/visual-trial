@@ -74,9 +74,6 @@ export class Action {
 
         proc.on('close', (code) => {
             this.output(`\n${name} process exited with code ${code}\n\n`);
-            if(code != 0) {
-                vscode.window.showErrorMessage(`${name} process exited with code ${code}`);
-            }
 
             if(done) {
                 done();
