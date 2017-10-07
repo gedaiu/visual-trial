@@ -72,6 +72,24 @@ export default class ResultManager {
         this.notify(subpackage, result.suite, result.test);
     }
 
+    getRestultsByFile(filename: string) : Map<string, TestResult[]> {
+        var filteredResults = new Map<string, TestResult[]>();
+
+        this.results.forEach((suites, subpackage) => {
+            filteredResults.set(subpackage, []);
+
+            suites.forEach((results, suiteName) => {
+                results.forEach((result, testName) => {
+                    if(result.location.fileName == filename) {
+                        filteredResults.get(subpackage).push(result);
+                    }
+                });
+            });
+        });
+
+        return filteredResults;
+    }
+
     getResult(subpackage: string, suite: string, testName: string): TestResult | null {
         if (!this.results.has(subpackage)) {
             return null;

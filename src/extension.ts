@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import { TrialTestsDataProvider, TrialNode } from './trialTestsDataProvider'
-import { Range, languages, Uri } from "vscode";
+import { Range, languages, Uri, Disposable } from "vscode";
 import { TestLocation } from "./nodes/testCaseTrialNode";
 import { ActionCollection } from "./action";
 import { ActionsPresenter } from "./actionsPresenter";
@@ -13,8 +13,9 @@ import { TestRunner } from "./testRunner";
 import { TestDiagnostics } from "./testDiagnostics";
 import { TestResult, TestState } from "./testResult";
 import Trial from "./trial";
+import TrialCodeLenseProvider from './trialCodeLenseProvider';
 
-
+let codeLenseDisposer: Disposable;
 function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     const actions = new ActionCollection();
     const actionsPresenter = new ActionsPresenter(actions);
@@ -22,6 +23,7 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     const testDiagnostics = new TestDiagnostics();
 
     const trialTests = new TrialTestsDataProvider(vscode.workspace.rootPath, context, testRunner);
+    const codeLenseProvider = new TrialCodeLenseProvider(testRunner.results);
 
     testRunner.onClearResults(() => {
         testDiagnostics.clear();
@@ -59,7 +61,8 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
         trialTests.refresh(node);
     });
 
-    vscode.commands.registerCommand('runTest', node => {
+    vscode.commands.registerCommand('runTest', (subpackage: string, suite: string, name: string) => {
+        let node = trialTests.collection.getTest(subpackage, suite, name);
         testRunner.runTest(node);
     });
 
@@ -74,7 +77,9 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
                 trialTests.refresh(node);
             });
         });
-    })
+    });
+
+    codeLenseDisposer = vscode.languages.registerCodeLensProvider({ pattern: '**/*.d' }, codeLenseProvider);
 }
 
 // this method is called when your extension is activated
@@ -91,4 +96,5 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
+    codeLenseDisposer
 }
