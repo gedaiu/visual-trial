@@ -1,11 +1,12 @@
 import Action from "./action";
-import { StatusBarItem, window } from "vscode";
-
+import { StatusBarItem, window, EventEmitter, Event } from "vscode";
 
 export default class ActionCollection {
-
     private actions: Array<Action> = [];
     private statusBarItem: StatusBarItem;
+
+    private _onEmpty: EventEmitter<void> = new EventEmitter<void>();
+    readonly onEmpty: Event<void> = this._onEmpty.event;
 
     constructor() {
         this.statusBarItem = window.createStatusBarItem();
@@ -50,6 +51,7 @@ export default class ActionCollection {
         this.updateStatus();
 
         if (this.length === 0) {
+            this._onEmpty.fire();
             return;
         }
 

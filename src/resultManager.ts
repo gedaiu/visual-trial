@@ -61,7 +61,15 @@ export default class ResultManager {
             }
 
             if(!result.status || result.status == TestState.unknown) {
-                result.status = oldStatus[result.test] || TestState.unknown;
+                if(oldStatus[result.test]) {
+                    result.status = oldStatus[result.test];
+                } else if(result.test.indexOf("__unittestL") == 0 && result.test != "__unittestL") {
+                    var oldTestName = Object.keys(oldStatus).filter(name => name.indexOf(result.test) == 0);
+
+                    if(oldTestName.length == 1) {
+                        result.status = oldStatus[oldTestName[0]];
+                    }
+                }
             }
 
             _this.add(subpackage, result);
@@ -166,7 +174,15 @@ export default class ResultManager {
         });
     }
 
-    removeWaiting(subpackage: string) {
+    removeWaiting(subpackage?: string) {
+        if(!subpackage) {
+            this.results.forEach((value, key) => {
+                this.removeWaiting(key);
+            });
+
+            return;
+        }
+
         if (this.results.has(subpackage)) {
             this.results.get(subpackage).forEach((suite) => {
                 suite.forEach((result, name) => {

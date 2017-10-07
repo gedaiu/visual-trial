@@ -9,7 +9,6 @@ import * as myExtension from '../src/extension';
 import Action from '../src/actions/action';
 
 suite("Action", () => {
-
     test("It should execute the action", (done) => {
         var action = new Action("name", () => {
             done();

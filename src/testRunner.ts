@@ -28,6 +28,10 @@ export class TestRunner {
         this.results.onResult((data) => {
             this._onResult.fire(data);
         });
+
+        this.actions.onEmpty(() => {
+            this.results.removeWaiting();
+        });
     }
 
     subpackages(): Thenable<string[]> {
@@ -101,8 +105,6 @@ export class TestRunner {
         });
 
         var action = this.trial.runAllTests(node.subpackage, (err) => {
-            this.results.removeWaiting(node.subpackage);
-
             if(err) {
                 vscode.window.showErrorMessage(err);
             }

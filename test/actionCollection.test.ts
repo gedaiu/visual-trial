@@ -80,4 +80,13 @@ suite("Action collection", () => {
 
         collection.cancel("name");
     });
+
+    test("It should call an event when the action collection is empty", (done) => {
+        var collection = new ActionCollection();
+        collection.onEmpty(done);
+
+        collection.push(new Action("name", (d) => {
+            d();
+        }));
+    });
 });
