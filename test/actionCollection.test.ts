@@ -4,7 +4,8 @@ import * as should from 'should';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
-import { Action, ActionCollection } from "../src/action";
+import ActionCollection from '../src/actions/actionCollection';
+import Action from '../src/actions/action';
 
 suite("Action collection", () => {
 

@@ -1,6 +1,6 @@
-import { Action } from "../action";
 import { spawn } from "child_process";
 import * as vscode from "vscode";
+import Action from "./action";
 
 export default class SubpackagesAction extends Action {
 

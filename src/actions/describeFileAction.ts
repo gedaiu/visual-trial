@@ -1,4 +1,5 @@
-import { Action } from "../action";
+import Action from "./action";
+
 
 export default class DescribeFileAction extends Action {
     constructor(command: string, workingDir: string, fileName: string, callback) {

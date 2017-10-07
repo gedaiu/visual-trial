@@ -6,7 +6,6 @@ import * as path from 'path';
 
 import { Range, languages, Uri, Disposable } from "vscode";
 import { TestLocation } from "./nodes/testCaseTrialNode";
-import { ActionCollection } from "./action";
 import { ActionsPresenter } from "./actionsPresenter";
 import { TestRunner } from "./testRunner";
 import { TestDiagnostics } from "./testDiagnostics";
@@ -14,6 +13,7 @@ import { TestResult, TestState } from "./testResult";
 import Trial from "./trial";
 import { TrialTestsDataProvider } from './providers/trialTestsDataProvider';
 import TrialCodeLenseProvider from './providers/trialCodeLenseProvider';
+import ActionCollection from './actions/actionCollection';
 
 let codeLenseDisposer: Disposable;
 function initExtension(context: vscode.ExtensionContext, trial: Trial) {

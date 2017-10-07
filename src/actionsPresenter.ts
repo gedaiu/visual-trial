@@ -1,5 +1,5 @@
-import { ActionCollection } from "./action";
 import { window } from "vscode";
+import ActionCollection from "./actions/actionCollection";
 
 export class ActionsPresenter {
     constructor(private actions: ActionCollection) {

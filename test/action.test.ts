@@ -6,7 +6,7 @@ import * as should from 'should';
 // as well as import your extension to test it
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
-import { Action } from "../src/action";
+import Action from '../src/actions/action';
 
 suite("Action", () => {
 

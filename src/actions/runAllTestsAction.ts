@@ -1,6 +1,6 @@
-import { Action } from "../action";
 import { TrialParser } from "../trialParser";
 import * as vscode from "vscode";
+import Action from "./action";
 
 export default class RunAllTestsAction extends Action {
     parser: TrialParser = new TrialParser();

@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { Action, ActionCollection } from "./action";
 import { TrialRootNode } from "./nodes/trialRootNode";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { ChildProcess, spawn } from "child_process";
@@ -8,6 +7,7 @@ import { TrialParser } from "./trialParser";
 import { TestResult, TestState } from "./testResult";
 import Trial from "./trial";
 import ResultManager from './resultManager';
+import ActionCollection from './actions/actionCollection';
 
 export class TestRunner {
     private subpackagesPromise: Thenable<string[]>;

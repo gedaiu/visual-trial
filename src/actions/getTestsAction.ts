@@ -1,4 +1,4 @@
-import { Action } from "../action";
+import Action from "./action";
 
 export default class GetTestsAction extends Action {
 
