@@ -18,8 +18,7 @@ export interface TrialNode {
 export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     private _onDidChangeTreeData: EventEmitter<any> = new EventEmitter<any>();
     readonly onDidChangeTreeData: Event<any> = this._onDidChangeTreeData.event;
-
-    private collection: TrialNodeCollection;
+    readonly collection: TrialNodeCollection;
 
     constructor(public projectRoot: string, private context: vscode.ExtensionContext, private testRunner: TestRunner) {
         this.collection = new TrialNodeCollection(context, this.testRunner);

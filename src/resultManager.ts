@@ -1,6 +1,30 @@
 import { TestResult, TestState } from "./testResult";
 import { EventEmitter, Event } from "vscode";
 
+
+
+function flatten(obj, callback) {
+    if (Array.isArray(obj)) {
+        obj.forEach((a) => {
+            const result: TestResult = {
+                status: TestState.unknown,
+                suite: a.suiteName,
+                test: a.name,
+                location: a.location,
+                labels: a.labels
+            };
+
+            callback(result);
+        });
+
+        return;
+    }
+
+    Object.keys(obj).forEach((a) => {
+        flatten(obj[a], callback);
+    });
+}
+
 export default class ResultManager {
     private results: Map<string, Map<string, Map<string, TestResult>>> = new Map<string, Map<string, Map<string, TestResult>>>();
     private _onResult: EventEmitter<any> = new EventEmitter<any>();
@@ -11,42 +35,36 @@ export default class ResultManager {
     }
 
     cache(subpackage: string, data: object) {
-        if(this.results.has(subpackage)) {
+        if (this.results.has(subpackage)) {
             this.results.delete(subpackage);
         }
 
         const _this = this;
-        function flatten(obj) {
-            if (Array.isArray(obj)) {
-                obj.forEach((a) => {
-                    const result : TestResult = {
-                        status: TestState.unknown,
-                        suite: a.suiteName,
-                        test: a.name,
-                        location: a.location,
-                        labels: a.labels
-                    };
+        flatten(data,(result) => {
+            _this.add(subpackage, result);
+        });
+    }
 
-                    _this.add(subpackage, result);
-                });
+    updateCache(subpackage: string, data: object) {
+        const _this = this;
+        var cleared = {};
 
-                return;
+        flatten(data,(result) => {
+            if(!cleared[result.suite]) {
+                cleared[result.suite] = true;
+                this.results.get(subpackage).delete(result.suite);
             }
 
-            Object.keys(obj).forEach((a) => {
-                flatten(obj[a]);
-            });
-        }
-
-        flatten(data);
+            _this.add(subpackage, result);
+        });
     }
 
     add(subpackage: string, result: TestResult) {
-        if(!this.results.has(subpackage)) {
+        if (!this.results.has(subpackage)) {
             this.results.set(subpackage, new Map<string, Map<string, TestResult>>());
         }
 
-        if(!this.results.get(subpackage).has(result.suite)) {
+        if (!this.results.get(subpackage).has(result.suite)) {
             this.results.get(subpackage).set(result.suite, new Map<string, TestResult>());
         }
 
@@ -55,15 +73,15 @@ export default class ResultManager {
     }
 
     getResult(subpackage: string, suite: string, testName: string): TestResult | null {
-        if(!this.results.has(subpackage)) {
+        if (!this.results.has(subpackage)) {
             return null;
         }
 
-        if(!this.results.get(subpackage).has(suite)) {
+        if (!this.results.get(subpackage).has(suite)) {
             return null;
         }
 
-        if(!this.results.get(subpackage).get(suite).get(testName)) {
+        if (!this.results.get(subpackage).get(suite).get(testName)) {
             return null;
         }
 
@@ -71,7 +89,7 @@ export default class ResultManager {
     }
 
     getSuites(subpackage): string[] {
-        if(!this.results.has(subpackage)) {
+        if (!this.results.has(subpackage)) {
             return [];
         }
 
@@ -79,11 +97,11 @@ export default class ResultManager {
     }
 
     getTestNames(subpackage: string, suite: string) {
-        if(!this.results.has(subpackage)) {
+        if (!this.results.has(subpackage)) {
             return [];
         }
 
-        if(!this.results.get(subpackage).has(suite)) {
+        if (!this.results.get(subpackage).has(suite)) {
             return [];
         }
 
@@ -91,9 +109,9 @@ export default class ResultManager {
     }
 
     setTestState(subpackage: string, suite: string, test: string, func: (result: TestResult) => void) {
-        if(!this.results.has(subpackage) ||
-           !this.results.get(subpackage).has(suite) ||
-           !this.results.get(subpackage).get(suite).has(test)) {
+        if (!this.results.has(subpackage) ||
+            !this.results.get(subpackage).has(suite) ||
+            !this.results.get(subpackage).get(suite).has(test)) {
             const result = {
                 status: TestState.unknown,
                 suite: suite,
@@ -109,7 +127,7 @@ export default class ResultManager {
     }
 
     setPackageState(subpackage: string, func: (result: TestResult) => void) {
-        if(!this.results.has(subpackage)) {
+        if (!this.results.has(subpackage)) {
             return;
         }
 
@@ -122,10 +140,10 @@ export default class ResultManager {
     }
 
     removeWaiting(subpackage: string) {
-        if(this.results.has(subpackage)) {
+        if (this.results.has(subpackage)) {
             this.results.get(subpackage).forEach((suite) => {
                 suite.forEach((result, name) => {
-                    if(result.status === TestState.wait) {
+                    if (result.status === TestState.wait) {
                         suite.delete(name);
                     }
                 });

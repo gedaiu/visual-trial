@@ -13,7 +13,13 @@ export class TrialNodeCollection {
     private tests = {};
 
     constructor(private context: ExtensionContext, private testRunner: TestRunner) {
+    }
 
+    getSuiteNodes(suite) {
+        var prefixedSuite = "#" + suite;
+        var suiteNames = Object.keys(this.suites).filter(a => a.indexOf(prefixedSuite) != -1);
+
+        return suiteNames.map(name => this.suites[name]);
     }
 
     getSubpackage(name: string) {

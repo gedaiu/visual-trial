@@ -69,10 +69,10 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
 
     vscode.workspace.onDidSaveTextDocument(e => {
         testRunner.refreshFile(e.fileName, (err, subpackage, data) => {
-            //var node = trialTests.getSuiteNodes();
-            //trialTests.refresh(node);
-
-            console.log(data);
+            trialTests.collection.getSuiteNodes(subpackage).forEach(node => {
+                testRunner.results.updateCache(node.subpackage, data);
+                trialTests.refresh(node);
+            });
         });
     })
 }
