@@ -67,6 +67,12 @@ export class TestRunner {
         });
     }
 
+    refreshFile(fileName: string, callback) {
+        var action = this.trial.describeFile(fileName, callback);
+
+        this.actions.push(action);
+    }
+
     runTest(node: TestCaseTrialNode) {
         this._onClearResults.fire();
 

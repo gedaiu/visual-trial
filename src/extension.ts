@@ -28,7 +28,7 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     });
 
     testRunner.onResult((data) => {
-        var result: TestResult = testRunner.getResult(data[0], data[1], data[2]);
+        var result: TestResult = testRunner.results.getResult(data[0], data[1], data[2]);
 
         if(result.status == TestState.failure) {
             testDiagnostics.add(result);
@@ -66,6 +66,15 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     vscode.commands.registerCommand('runAll', node => {
         testRunner.runAll(node);
     });
+
+    vscode.workspace.onDidSaveTextDocument(e => {
+        testRunner.refreshFile(e.fileName, (err, subpackage, data) => {
+            //var node = trialTests.getSuiteNodes();
+            //trialTests.refresh(node);
+
+            console.log(data);
+        });
+    })
 }
 
 // this method is called when your extension is activated

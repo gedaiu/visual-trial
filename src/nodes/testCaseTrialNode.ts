@@ -1,5 +1,5 @@
 import { TrialNode } from "../trialTestsDataProvider";
-import { TrialCollection } from "./trialCollection";
+import { TrialNodeCollection } from "./trialNodeCollection";
 import { Uri, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { TestState } from "../testResult";
 
@@ -17,7 +17,7 @@ export class TestCaseTrialNode implements TrialNode {
     constructor(public subpackage: string,
                 public suite: string,
                 public name: string,
-                private collection: TrialCollection) {
+                private collection: TrialNodeCollection) {
 
     }
 

@@ -3,7 +3,7 @@ import * as ChildProcess from "child_process"
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TestRunner } from "./testRunner";
-import { TrialCollection } from "./nodes/trialCollection";
+import { TrialNodeCollection } from "./nodes/trialNodeCollection";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { TrialRootNode } from "./nodes/trialRootNode";
 import { ActionCollection } from "./action";
@@ -19,10 +19,10 @@ export class TrialTestsDataProvider implements TreeDataProvider<TrialNode> {
     private _onDidChangeTreeData: EventEmitter<any> = new EventEmitter<any>();
     readonly onDidChangeTreeData: Event<any> = this._onDidChangeTreeData.event;
 
-    private collection: TrialCollection;
+    private collection: TrialNodeCollection;
 
     constructor(public projectRoot: string, private context: vscode.ExtensionContext, private testRunner: TestRunner) {
-        this.collection = new TrialCollection(context, this.testRunner);
+        this.collection = new TrialNodeCollection(context, this.testRunner);
 
         this.testRunner.onResult((data) => {
             this.refresh(this.collection.getSuite(data[0], data[1]));

@@ -7,7 +7,7 @@ import { TestResult } from "../testResult";
 import * as path from 'path';
 import { TrialNode } from "../trialTestsDataProvider";
 
-export class TrialCollection {
+export class TrialNodeCollection {
     private subpackages = {};
     private suites = {};
     private tests = {};

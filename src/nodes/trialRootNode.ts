@@ -1,13 +1,13 @@
 import { TreeItem, TreeItemCollapsibleState, ExtensionContext } from "vscode";
 import { TrialNode } from "../trialTestsDataProvider";
 import { TestRunner } from "../testRunner";
-import { TrialCollection } from "./trialCollection";
+import { TrialNodeCollection } from "./trialNodeCollection";
 
 export class TrialRootNode implements TrialNode {
     testFetcher: Thenable<TrialNode[]>;
     subpackage: string = "";
 
-    constructor(private name: string, private context: ExtensionContext, private testRunner: TestRunner, private collection: TrialCollection) {
+    constructor(private name: string, private context: ExtensionContext, private testRunner: TestRunner, private collection: TrialNodeCollection) {
         this.subpackage = this.name.indexOf(":") === 0 ? this.name : "";
     }
 

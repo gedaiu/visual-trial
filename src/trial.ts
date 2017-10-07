@@ -8,6 +8,7 @@ import SubpackagesAction from "./actions/subpackagesAction";
 import GetTestsAction from "./actions/getTestsAction";
 import RunTestAction from "./actions/runTestAction";
 import RunAllTestsAction from "./actions/runAllTestsAction";
+import DescribeFileAction from "./actions/describeFileAction";
 
 export default class Trial {
   private output: vscode.OutputChannel;
@@ -120,6 +121,16 @@ export default class Trial {
 
   getTests(subpackage: string, callback) : GetTestsAction {
     let action = new GetTestsAction(this.localTrialExecutable, this.projectRoot, subpackage, callback);
+
+    action.onOutput((text) => {
+      this.output.append(text);
+    });
+
+    return action;
+  }
+
+  describeFile(fileName: string, callback) : DescribeFileAction {
+    let action = new DescribeFileAction(this.localTrialExecutable, this.projectRoot, fileName, callback);
 
     action.onOutput((text) => {
       this.output.append(text);
