@@ -1,7 +1,7 @@
 import { TreeItem, TreeItemCollapsibleState, ExtensionContext } from "vscode";
-import { TrialNode } from "../trialTestsDataProvider";
 import { TestRunner } from "../testRunner";
 import { TrialNodeCollection } from "./trialNodeCollection";
+import { TrialNode } from "../providers/trialTestsDataProvider";
 
 export class TrialRootNode implements TrialNode {
     testFetcher: Thenable<TrialNode[]>;

@@ -1,13 +1,13 @@
 import { EventEmitter, CodeLensProvider, Event, TextDocument, CancellationToken, CodeLens, Range, Position, Command } from "vscode";
-import ResultManager from "./resultManager";
-import { TestResult } from "./testResult";
+import ResultManager from "../resultManager";
+import { TestResult } from "../testResult";
 
 export default class TrialCodeLenseProvider implements CodeLensProvider {
     private _onDidChangeCodeLenses: EventEmitter<void> = new EventEmitter<void>();
     readonly onDidChangeCodeLenses: Event<void> = this._onDidChangeCodeLenses.event;
 
     constructor(private results: ResultManager) {
-        results.onResult.bind(() => {
+        results.onResult(() => {
             this._onDidChangeCodeLenses.fire();
         });
     }
@@ -41,10 +41,10 @@ export default class TrialCodeLenseProvider implements CodeLensProvider {
 
         return lenses;
     }
-
+/*
     resolveCodeLens?(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {
         //throw new Error("Method not implemented.");
 
         return codeLens;
-    }
+    }*/
 }

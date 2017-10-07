@@ -5,7 +5,7 @@ import { TestCaseTrialNode, TestLocation } from "./testCaseTrialNode";
 import { SuiteTrialNode } from "./suiteTrialNode";
 import { TestResult } from "../testResult";
 import * as path from 'path';
-import { TrialNode } from "../trialTestsDataProvider";
+import { TrialNode } from "../providers/trialTestsDataProvider";
 
 export class TrialNodeCollection {
     private subpackages = {};

@@ -1,7 +1,7 @@
 import { TreeItem, TreeItemCollapsibleState } from "vscode";
-import { TrialNode } from "../trialTestsDataProvider";
 import { TestCaseData } from "./testCaseTrialNode";
 import { TrialNodeCollection } from "./trialNodeCollection";
+import { TrialNode } from "../providers/trialTestsDataProvider";
 
 export class SuiteTrialNode implements TrialNode {
     constructor(public subpackage: string,

@@ -2,11 +2,8 @@ import { ExtensionContext, TreeDataProvider, EventEmitter, TreeItem, Event, wind
 import * as ChildProcess from "child_process"
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { TestRunner } from "./testRunner";
-import { TrialNodeCollection } from "./nodes/trialNodeCollection";
-import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
-import { TrialRootNode } from "./nodes/trialRootNode";
-import { ActionCollection } from "./action";
+import { TrialNodeCollection } from '../nodes/trialNodeCollection';
+import { TestRunner } from '../testRunner';
 
 export interface TrialNode {
     subpackage: string;
