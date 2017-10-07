@@ -27,7 +27,7 @@ export default class TrialCodeLenseProvider implements CodeLensProvider {
                 let start = new Position(result.location.line - 1, 0);
                 let end = new Position(result.location.line, 0);
 
-                let title = "Run the test" + (subpackageName == "" ? "" : ("(" + subpackageName + ")"));
+                let title = "Run the test" + (subpackageName == "" ? "" : (" (" + subpackageName + ")"));
 
                 let lense = new CodeLens(new Range(start, end), {
                     title: title,
