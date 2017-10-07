@@ -1,13 +1,11 @@
 import { TestResult, TestState } from "./testResult";
 import { EventEmitter, Event } from "vscode";
 
-
-
 function flatten(obj, callback) {
     if (Array.isArray(obj)) {
         obj.forEach((a) => {
             const result: TestResult = {
-                status: TestState.unknown,
+                status: a.status || TestState.unknown,
                 suite: a.suiteName,
                 test: a.name,
                 location: a.location,
@@ -47,12 +45,23 @@ export default class ResultManager {
 
     updateCache(subpackage: string, data: object) {
         const _this = this;
+        var oldStatus = {};
         var cleared = {};
 
         flatten(data,(result) => {
             if(!cleared[result.suite]) {
                 cleared[result.suite] = true;
-                this.results.get(subpackage).delete(result.suite);
+                if(this.results.has(subpackage) && this.results.get(subpackage).has(result.suite)) {
+                    this.results.get(subpackage).get(result.suite).forEach((result) => {
+                        oldStatus[result.test] = result.status;
+                    });
+
+                    this.results.get(subpackage).delete(result.suite);
+                }
+            }
+
+            if(!result.status || result.status == TestState.unknown) {
+                result.status = oldStatus[result.test] || TestState.unknown;
             }
 
             _this.add(subpackage, result);

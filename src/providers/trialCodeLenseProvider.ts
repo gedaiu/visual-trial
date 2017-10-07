@@ -18,7 +18,6 @@ export default class TrialCodeLenseProvider implements CodeLensProvider {
         }
 
         var results: Map<string, TestResult[]> = this.results.getRestultsByFile(document.fileName);
-        //throw new Error("Method not implemented.");
 
         var lenses: CodeLens[] = [];
 

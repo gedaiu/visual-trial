@@ -62,7 +62,14 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     });
 
     vscode.commands.registerCommand('runTest', (subpackage: string, suite: string, name: string) => {
-        let node = trialTests.collection.getTest(subpackage, suite, name);
+        var node;
+
+        if(subpackage && suite && name) {
+            node = trialTests.collection.getTest(subpackage, suite, name);
+        } else {
+            node = subpackage;
+        }
+
         testRunner.runTest(node);
     });
 

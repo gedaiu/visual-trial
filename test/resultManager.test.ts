@@ -38,6 +38,7 @@ suite("ResultManager", () => {
                     "location": { "fileName": "/Users/gedaiu/workspace/GOL/source/gol.d", "line": 51 }
                 }],
                 "module2": [{
+                    "status": "success",
                     "suiteName": "gol.module2",
                     "name": "__unittestL51_106()",
                     "labels": [],
@@ -69,6 +70,39 @@ suite("ResultManager", () => {
 
         should(manager.getResult("", "gol.module2", "__unittestL51_106()")).equal(null);
         should(manager.getResult("", "gol.module2", "__unittestL51_108()").test).equal("__unittestL51_108()");
+    });
+
+
+    test("It should update the cached tests and keep the status if the test name does not change", () => {
+        var manager = new ResultManager();
+
+        manager.cache("", {
+            "gol": {
+                "module2": [{
+                    "status": "success",
+                    "suiteName": "gol.module2",
+                    "name": "__unittestL51_108()",
+                    "labels": [],
+                    "location": { "fileName": "/Users/gedaiu/workspace/GOL/source/gol.d", "line": 51 }
+                }]
+            }
+        });
+
+        manager.updateCache("", {
+            "gol": {
+                "module2": [{
+                    "suiteName": "gol.module2",
+                    "name": "__unittestL51_108()",
+                    "labels": [],
+                    "location": { "fileName": "/Users/gedaiu/workspace/GOL/source/gol.d", "line": 51 }
+                }]
+            }
+        });
+
+        let result = manager.getResult("", "gol.module2", "__unittestL51_108()")
+
+        should(result.test).equal("__unittestL51_108()");
+        should(result.status).equal("success");
     });
 
     test("It should find tests by filename", () => {
