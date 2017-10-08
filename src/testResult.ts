@@ -26,5 +26,6 @@ export enum TestState {
     failure = "failure",
     error = "error",
     run = "run",
-    wait = "wait"
+    wait = "wait",
+    cancel = "cancel"
 }

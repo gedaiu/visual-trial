@@ -1,19 +1,28 @@
 import { window, ProgressLocation, Progress, StatusBarItem } from "vscode";
-import { spawn } from "child_process";
+import { spawn, ChildProcess } from "child_process";
+import { EventEmitter, Event } from "vscode";
 import * as vscode from "vscode";
 
 export default class Action {
     private _name: string;
     private _func: any;
-    private _cancelFunc: any;
     private _onOutput: any;
-    private _event: any;
     private _isRunning: boolean = false;
+    protected proc: ChildProcess;
 
-    constructor(name: string, func: any, cancelFunc: any = null) {
+    private _onFinish: EventEmitter<void> = new EventEmitter<void>();
+    readonly onFinish: Event<void> = this._onFinish.event;
+
+    private _onCancel: EventEmitter<void> = new EventEmitter<void>();
+    readonly onCancel: Event<void> = this._onCancel.event;
+
+    constructor(name: string, func: any, cancelFunc?: any) {
         this._name = name;
         this._func = func;
-        this._cancelFunc = cancelFunc;
+
+        if(cancelFunc) {
+            this.onCancel(cancelFunc);
+        }
     }
 
     perform() {
@@ -22,9 +31,7 @@ export default class Action {
         setImmediate(() => {
             this._func(() => {
                 this._isRunning = false;
-                if(this._event) {
-                    this._event();
-                }
+                this._onFinish.fire();
             });
         });
 
@@ -32,14 +39,7 @@ export default class Action {
     };
 
     cancel() {
-        if(this._cancelFunc) {
-            this._cancelFunc();
-        }
-    }
-
-    onFinish(event) : Action {
-        this._event = event;
-        return this;
+        this._onCancel.fire();
     }
 
     get name() : string {
@@ -62,17 +62,23 @@ export default class Action {
 
     command(name: string, options: string[], workingDir: string, done) {
         this.output("> " + name + " " + options.join(' ') + "\n");
-        var proc = spawn(name, options, { cwd: workingDir });
+        this.proc = spawn(name, options, { cwd: workingDir });
 
-        proc.stdout.on('data', (data) => {
+        this.onCancel(() => {
+            if(this.proc) {
+                this.proc.kill();
+            }
+        });
+
+        this.proc.stdout.on('data', (data) => {
             this.output(data.toString());
         });
 
-        proc.stderr.on('data', (data) => {
+        this.proc.stderr.on('data', (data) => {
             this.output(data.toString());
         });
 
-        proc.on('close', (code) => {
+        this.proc.on('close', (code) => {
             this.output(`\n${name} process exited with code ${code}\n\n`);
 
             if(done) {
@@ -80,7 +86,7 @@ export default class Action {
             }
         });
 
-        proc.on('disconnect', () => {
+        this.proc.on('disconnect', () => {
             this.output(`\n${name} process disconnected\n\n`);
             vscode.window.showErrorMessage(`${name} process disconnected`);
 
@@ -89,7 +95,7 @@ export default class Action {
             }
         });
 
-        proc.on('error', (err) => {
+        this.proc.on('error', (err) => {
             this.output(`\n${name} process error: ` + err + `\n\n`);
             vscode.window.showErrorMessage(`${name} process error: ` + err);
 
@@ -98,6 +104,6 @@ export default class Action {
             }
         });
 
-        return proc;
+        return this.proc;
     }
 }

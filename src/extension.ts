@@ -73,6 +73,12 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
         testRunner.runTest(node);
     });
 
+    vscode.commands.registerCommand('cancelTest', (subpackage: string, suite: string, name: string) => {
+        let node = trialTests.collection.getTest(subpackage, suite, name);
+
+        testRunner.cancelTest(node);
+    });
+
     vscode.commands.registerCommand('runAll', node => {
         testRunner.runAll(node);
     });

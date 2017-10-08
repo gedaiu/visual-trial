@@ -77,6 +77,10 @@ export class TestRunner {
         this.actions.push(action);
     }
 
+    cancelTest(node: TestCaseTrialNode) {
+        this.actions.cancel("run " + node.name);
+    }
+
     runTest(node: TestCaseTrialNode) {
         this._onClearResults.fire();
 
@@ -92,6 +96,12 @@ export class TestRunner {
 
         action.parser.onTestResult((result) => {
             this.results.add(node.subpackage, result);
+        });
+
+        action.onCancel(() => {
+            this.results.setTestState(node.subpackage, node.suite, node.name, (result) => {
+                result.status = TestState.cancel;
+            });
         });
 
         this.actions.push(action);
@@ -112,6 +122,14 @@ export class TestRunner {
 
         action.parser.onTestResult((result) => {
             this.results.add(node.subpackage, result);
+        });
+
+        action.onCancel(() => {
+            this.results.setPackageState(node.subpackage, (result) => {
+                if(result.status == TestState.run || result.status == TestState.wait) {
+                    result.status = TestState.cancel;
+                }
+            });
         });
 
         this.actions.push(action);

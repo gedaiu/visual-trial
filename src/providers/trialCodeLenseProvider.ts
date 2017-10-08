@@ -1,6 +1,6 @@
 import { EventEmitter, CodeLensProvider, Event, TextDocument, CancellationToken, CodeLens, Range, Position, Command } from "vscode";
 import ResultManager from "../resultManager";
-import { TestResult } from "../testResult";
+import { TestResult, TestState } from "../testResult";
 
 export default class TrialCodeLenseProvider implements CodeLensProvider {
     private _onDidChangeCodeLenses: EventEmitter<void> = new EventEmitter<void>();
@@ -23,22 +23,67 @@ export default class TrialCodeLenseProvider implements CodeLensProvider {
 
         results.forEach((results, subpackageName) => {
             results.forEach((result) => {
-                let start = new Position(result.location.line - 1, 0);
-                let end = new Position(result.location.line, 0);
-
-                let title = "Run the test" + (subpackageName == "" ? "" : (" (" + subpackageName + ")"));
-
-                let lense = new CodeLens(new Range(start, end), {
-                    title: title,
-                    command: "runTest",
-                    arguments: [ subpackageName, result.suite, result.test ]
-                });
-
-                lenses.push(lense);
+                if(result.status == TestState.wait || result.status == TestState.run) {
+                    lenses.push(this.createCancelLense(subpackageName, result));
+                } else {
+                    lenses.push(this.createRunLense(subpackageName, result));
+                }
             });
         });
 
         return lenses;
+    }
+
+    createLense(subpackageName: string, result: TestResult) {
+
+    }
+
+    createRunLense(subpackageName: string, result: TestResult): CodeLens {
+        let start = new Position(result.location.line - 1, 0);
+        let end = new Position(result.location.line, 0);
+        let title = "";
+
+        if(title == "") {
+            title = "Run the test";
+        }
+
+        if(subpackageName != "") {
+            title += " (" + subpackageName + ")";
+        }
+
+        let lense = new CodeLens(new Range(start, end), {
+            title: title,
+            command: "runTest",
+            arguments: [ subpackageName, result.suite, result.test ]
+        });
+
+        return lense;
+    }
+
+    createCancelLense(subpackageName: string, result: TestResult): CodeLens {
+        let start = new Position(result.location.line - 1, 0);
+        let end = new Position(result.location.line, 0);
+        let title = "";
+
+        if(result.status == TestState.wait) {
+            title = "Waiting... cancel";
+        }
+
+        if(result.status == TestState.run) {
+            title = "Running... cancel";
+        }
+
+        if(subpackageName != "") {
+            title += " (" + subpackageName + ")";
+        }
+
+        let lense = new CodeLens(new Range(start, end), {
+            title: title,
+            command: "cancelTest",
+            arguments: [ subpackageName, result.suite, result.test ]
+        });
+
+        return lense;
     }
 /*
     resolveCodeLens?(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {

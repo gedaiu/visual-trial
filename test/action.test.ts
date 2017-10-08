@@ -31,8 +31,9 @@ suite("Action", () => {
     test("It should raise an event when it's done", (done) => {
         var action = new Action("name", (done) => {
             done();
-        }).onFinish(done);
+        });
 
+        action.onFinish(done);
         action.perform();
     });
 

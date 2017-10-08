@@ -44,6 +44,10 @@ export class TestCaseTrialNode implements TrialNode {
             return this.collection.icon('not_ok.svg');
         }
 
+        if(result.status == TestState.error || result.status == TestState.cancel) {
+            return this.collection.icon('error.svg');
+        }
+
         return this.collection.icon('unknown.svg');
     }
 
