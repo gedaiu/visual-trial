@@ -30,10 +30,7 @@ export class TestDiagnostics {
             .filter(a => a.range.start.line != result.error.location.line - 1);
 
         let diagnostic = new Diagnostic(new Range(result.error.location.line - 1, 0, result.error.location.line, 0), result.error.message, DiagnosticSeverity.Error);
-
-        if(result.error && result.error.raw) {
-            diagnostic.source = result.error.raw;
-        }
+        diagnostic.source = "trial";
 
         fileDiagnostics.push(diagnostic);
 

@@ -58,7 +58,6 @@ export class TrialParser {
         pieces.shift();
         var value = pieces.join(":");
 
-
         switch(property) {
             case "suite":
                 this.lastResult.suite = value;
@@ -108,6 +107,9 @@ export class TrialParser {
             case "error":
                 this.lastResult.error.raw = value + "\n";
                 break;
+
+            default:
+                this.lastResult.output += line + "\n";
         }
     }
 }

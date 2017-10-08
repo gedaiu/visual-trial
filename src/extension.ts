@@ -15,6 +15,7 @@ import { TrialTestsDataProvider } from './providers/trialTestsDataProvider';
 import TrialCodeLenseProvider from './providers/trialCodeLenseProvider';
 import ActionCollection from './actions/actionCollection';
 import EditorDecorationProvider from './providers/editorDecorationProvider';
+import TestResultOutput from './testResultOutput';
 
 let codeLenseDisposer: Disposable;
 function initExtension(context: vscode.ExtensionContext, trial: Trial) {
@@ -26,6 +27,7 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     const trialTests = new TrialTestsDataProvider(vscode.workspace.rootPath, context, testRunner);
     const codeLenseProvider = new TrialCodeLenseProvider(testRunner.results);
     const editorDecorationProvider = new EditorDecorationProvider(context, testRunner.results);
+    const testResultOutput = new TestResultOutput();
 
     testRunner.onClearResults(() => {
         testDiagnostics.clear();
@@ -48,6 +50,10 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     });
 
     vscode.window.registerTreeDataProvider('trialTests', trialTests);
+
+    vscode.commands.registerCommand('showResultOutput', (result: TestResult) => {
+        testResultOutput.show(result);
+    });
 
     vscode.commands.registerCommand('goToTestSource', (location: TestLocation) => {
         if(path.isAbsolute(location.fileName)) {
@@ -122,5 +128,5 @@ export function activate(context: vscode.ExtensionContext) {
 
 // this method is called when your extension is deactivated
 export function deactivate() {
-    codeLenseDisposer
+    codeLenseDisposer.dispose();
 }

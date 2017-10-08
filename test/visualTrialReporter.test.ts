@@ -53,6 +53,28 @@ suite("Visual Trial reporter protocol", () => {
         "END TEST;");
     });
 
+    test("It should append the extra lines to the output property", (done) => {
+        var parser = new TrialParser();
+
+        parser.onTestResult((result: TestResult) => {
+            should(result.output).equal("1\n2\n3\n4\n");
+            done();
+        });
+
+        parser.setString("BEGIN TEST;\n" +
+        "suite:trial.discovery.testclass.OtherTestSuite\n" +
+        "test:Some other name\n" +
+        "1\n" +
+        "2\n" +
+        "status:success\n" +
+        "3\n" +
+        "file:base.d\n" +
+        "line:199\n" +
+        "labels:[{ \"name\": \"name\", \"value\": \"value\" }, { \"name\": \"name1\", \"value\": \"value1\" }]\n" +
+        "4\n" +
+        "END TEST;");
+    });
+
     test("It should parse a failed test result", (done) => {
         var parser = new TrialParser();
 

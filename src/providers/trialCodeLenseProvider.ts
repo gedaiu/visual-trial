@@ -32,10 +32,32 @@ export default class TrialCodeLenseProvider implements CodeLensProvider {
                 if(result.status == TestState.success || result.status == TestState.failure || result.status == TestState.error) {
                     lenses.push(this.createStatusLense(subpackageName, result));
                 }
+
+                if(result.output || (result.error && result.error.raw)) {
+                    lenses.push(this.createDetailsLense(subpackageName, result));
+                }
             });
         });
 
         return lenses;
+    }
+
+    createDetailsLense(subpackageName: string, result: TestResult) {
+        let start = new Position(result.location.line - 1, 0);
+        let end = new Position(result.location.line, 0);
+        let title: string = "show output";
+
+        if(subpackageName != "") {
+            title += " (" + subpackageName + ")";
+        }
+
+        let lense = new CodeLens(new Range(start, end), {
+            title: title,
+            command: "showResultOutput",
+            arguments: [ result ]
+        });
+
+        return lense;
     }
 
     createStatusLense(subpackageName: string, result: TestResult) {

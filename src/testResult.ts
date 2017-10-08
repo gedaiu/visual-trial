@@ -7,6 +7,7 @@ export class TestResult {
     location?: TestLocation = {};
     labels?: Label[] = [];
     error?: TestError;
+    output?: string = "";
 }
 
 export class TestError {
