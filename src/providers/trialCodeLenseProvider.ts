@@ -28,14 +28,27 @@ export default class TrialCodeLenseProvider implements CodeLensProvider {
                 } else {
                     lenses.push(this.createRunLense(subpackageName, result));
                 }
+
+                if(result.status == TestState.success || result.status == TestState.failure || result.status == TestState.error) {
+                    lenses.push(this.createStatusLense(subpackageName, result));
+                }
             });
         });
 
         return lenses;
     }
 
-    createLense(subpackageName: string, result: TestResult) {
+    createStatusLense(subpackageName: string, result: TestResult) {
+        let start = new Position(result.location.line - 1, 0);
+        let end = new Position(result.location.line, 0);
+        let title: string = result.status;
 
+        let lense = new CodeLens(new Range(start, end), {
+            title: title,
+            command: null
+        });
+
+        return lense;
     }
 
     createRunLense(subpackageName: string, result: TestResult): CodeLens {
@@ -85,10 +98,4 @@ export default class TrialCodeLenseProvider implements CodeLensProvider {
 
         return lense;
     }
-/*
-    resolveCodeLens?(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {
-        //throw new Error("Method not implemented.");
-
-        return codeLens;
-    }*/
 }

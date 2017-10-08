@@ -77,6 +77,10 @@ export default class ResultManager {
     }
 
     add(subpackage: string, result: TestResult) {
+        if(subpackage == undefined) {
+            return;
+        }
+
         if (!this.results.has(subpackage)) {
             this.results.set(subpackage, new Map<string, Map<string, TestResult>>());
         }

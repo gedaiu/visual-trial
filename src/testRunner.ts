@@ -82,6 +82,18 @@ export class TestRunner {
     }
 
     runTest(node: TestCaseTrialNode) {
+        var names = this.actions.getNames();
+
+        if(names.indexOf("run " + node.name) != -1) {
+            vscode.window.showInformationMessage("Please wait until the current action for `" + node.name + "` is finished.");
+            return;
+        }
+
+        if(names.indexOf("run all tests " + node.subpackage) != -1) {
+            vscode.window.showInformationMessage("Please wait until the current action for `" + node.subpackage + "` is finished.");
+            return;
+        }
+
         this._onClearResults.fire();
 
         this.results.setTestState(node.subpackage, node.suite, node.name, (result) => {
@@ -108,6 +120,13 @@ export class TestRunner {
     }
 
     runAll(node: TrialRootNode) {
+        var names = this.actions.getNames();
+
+        if(names.indexOf("run all tests " + node.subpackage) != -1) {
+            vscode.window.showInformationMessage("Please wait until the current action for `" + node.subpackage + "` is finished.");
+            return;
+        }
+
         this._onClearResults.fire();
 
         this.results.setPackageState(node.subpackage, (result) => {

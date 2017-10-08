@@ -64,7 +64,7 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     vscode.commands.registerCommand('runTest', (subpackage: string, suite: string, name: string) => {
         var node;
 
-        if(subpackage && suite && name) {
+        if(typeof subpackage == "string" && suite && name) {
             node = trialTests.collection.getTest(subpackage, suite, name);
         } else {
             node = subpackage;
