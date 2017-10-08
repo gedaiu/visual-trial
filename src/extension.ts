@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import { Range, languages, Uri, Disposable } from "vscode";
+import { Range, languages, Uri, Disposable, TextEditor } from "vscode";
 import { TestLocation } from "./nodes/testCaseTrialNode";
 import { ActionsPresenter } from "./actionsPresenter";
 import { TestRunner } from "./testRunner";
@@ -14,6 +14,7 @@ import Trial from "./trial";
 import { TrialTestsDataProvider } from './providers/trialTestsDataProvider';
 import TrialCodeLenseProvider from './providers/trialCodeLenseProvider';
 import ActionCollection from './actions/actionCollection';
+import EditorDecorationProvider from './providers/editorDecorationProvider';
 
 let codeLenseDisposer: Disposable;
 function initExtension(context: vscode.ExtensionContext, trial: Trial) {
@@ -24,6 +25,7 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
 
     const trialTests = new TrialTestsDataProvider(vscode.workspace.rootPath, context, testRunner);
     const codeLenseProvider = new TrialCodeLenseProvider(testRunner.results);
+    const editorDecorationProvider = new EditorDecorationProvider(context, testRunner.results);
 
     testRunner.onClearResults(() => {
         testDiagnostics.clear();
@@ -35,6 +37,14 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
         if(result.status == TestState.failure) {
             testDiagnostics.add(result);
         }
+
+        editorDecorationProvider.updateAll();
+    });
+
+    vscode.window.onDidChangeVisibleTextEditors((editors: TextEditor[]) => {
+        editors.forEach((editor) => {
+            editorDecorationProvider.update(editor);
+        });
     });
 
     vscode.window.registerTreeDataProvider('trialTests', trialTests);
@@ -84,11 +94,14 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     });
 
     vscode.workspace.onDidSaveTextDocument(e => {
+
         testRunner.refreshFile(e.fileName, (err, subpackage, data) => {
             trialTests.collection.getSuiteNodes(subpackage).forEach(node => {
                 testRunner.results.updateCache(node.subpackage, data);
                 trialTests.refresh(node);
             });
+
+            editorDecorationProvider.updateAll();
         });
     });
 
