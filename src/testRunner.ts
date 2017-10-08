@@ -78,7 +78,17 @@ export class TestRunner {
     }
 
     cancelTest(node: TestCaseTrialNode) {
-        this.actions.cancel("run " + node.name);
+        var names = this.actions.getNames();
+
+        if(names.indexOf("run " + node.name) != -1) {
+            this.actions.cancel("run " + node.name);
+            return;
+        }
+
+        if(names.indexOf("run all tests " + node.subpackage) != -1) {
+            this.actions.cancel("run all tests " + node.subpackage);
+            return;
+        }
     }
 
     runTest(node: TestCaseTrialNode) {
