@@ -1,3 +1,7 @@
+[![](https://vsmarketplacebadge.apphb.com/version/bosz.visual-trial.svg)](https://marketplace.visualstudio.com/items?itemName=bosz.visual-trial)
+[![](https://vsmarketplacebadge.apphb.com/installs/bosz.visual-trial.svg)](https://marketplace.visualstudio.com/items?itemName=bosz.visual-trial)
+[![](https://vsmarketplacebadge.apphb.com/rating/bosz.visual-trial.svg)](https://marketplace.visualstudio.com/items?itemName=bosz.visual-trial)
+
 # Visual Trial
 
 `Visual Trial` is the `Visual Studio Code` integration for [Trial](http://trial.szabobogdan.com/), the extensible DLang test runner.
