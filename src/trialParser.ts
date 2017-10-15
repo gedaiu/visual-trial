@@ -70,6 +70,8 @@ export class TrialParser {
             case "status":
                 if(value == "success" ) {
                     this.lastResult.status = TestState.success;
+                } else if(value == "pending" ) {
+                    this.lastResult.status = TestState.pending;
                 } else {
                     this.lastResult.status = TestState.failure;
                     this.lastResult.error = new TestError();

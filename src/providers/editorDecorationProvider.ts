@@ -9,11 +9,13 @@ export default class EditorDecorationProvider {
     private failureDecoration: TextEditorDecorationType;
     private waitDecoration: TextEditorDecorationType;
     private runDecoration: TextEditorDecorationType;
+    private pendingDecoration: TextEditorDecorationType;
     private errorDecoration: TextEditorDecorationType;
 
     constructor(context: vscode.ExtensionContext, private results: ResultManager) {
         this.successDecoration = this.getDecorationIcon(context, "ok.svg");
         this.failureDecoration = this.getDecorationIcon(context, "not_ok.svg");
+        this.pendingDecoration = this.getDecorationIcon(context, "pending.svg");
         this.waitDecoration = this.getDecorationIcon(context, "wait.gif");
         this.runDecoration = this.getDecorationIcon(context, "run.gif");
         this.errorDecoration = this.getDecorationIcon(context, "error.svg");
@@ -43,6 +45,7 @@ export default class EditorDecorationProvider {
         var successLocations = [];
         var failureLocations = [];
         var waitLocations = [];
+        var pendingLocations = [];
         var runLocations = [];
         var errorLocations = [];
 
@@ -62,6 +65,10 @@ export default class EditorDecorationProvider {
                     waitLocations.push(new Range(location, location));
                 }
 
+                if(result.status == TestState.pending) {
+                    pendingLocations.push(new Range(location, location));
+                }
+
                 if(result.status == TestState.run) {
                     runLocations.push(new Range(location, location));
                 }
@@ -75,6 +82,7 @@ export default class EditorDecorationProvider {
         textEditor.setDecorations(this.successDecoration, successLocations);
         textEditor.setDecorations(this.failureDecoration, failureLocations);
         textEditor.setDecorations(this.waitDecoration, waitLocations);
+        textEditor.setDecorations(this.pendingDecoration, pendingLocations);
         textEditor.setDecorations(this.runDecoration, runLocations);
         textEditor.setDecorations(this.errorDecoration, errorLocations);
     }

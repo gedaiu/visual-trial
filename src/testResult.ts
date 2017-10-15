@@ -28,5 +28,6 @@ export enum TestState {
     error = "error",
     run = "run",
     wait = "wait",
+    pending = "pending",
     cancel = "cancel"
 }

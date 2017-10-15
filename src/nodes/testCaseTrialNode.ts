@@ -32,6 +32,10 @@ export class TestCaseTrialNode implements TrialNode {
             return this.collection.icon('ok.svg');
         }
 
+        if(result.status == TestState.pending) {
+            return this.collection.icon('pending.svg');
+        }
+
         if(result.status == TestState.run) {
             return this.collection.icon('run.gif');
         }

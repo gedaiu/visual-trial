@@ -101,7 +101,7 @@ export default class ResultManager {
 
             suites.forEach((results, suiteName) => {
                 results.forEach((result, testName) => {
-                    if(result.location.fileName == filename) {
+                    if(filename.endsWith(result.location.fileName)) {
                         filteredResults.get(subpackage).push(result);
                     }
                 });
