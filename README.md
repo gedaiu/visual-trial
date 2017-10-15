@@ -2,6 +2,9 @@
 
 `Visual Trial` is the `Visual Studio Code` integration for [Trial](http://trial.szabobogdan.com/), the extensible DLang test runner.
 
+## Preview
+![Visual Trial preview](https://raw.githubusercontent.com/gedaiu/visual-trial/master/preview.gif)
+
 ## Features
 
 - Trial v0.4.0 support
@@ -20,7 +23,7 @@ All that you need is a `DLang compiler` and `dub` installed.
 
 ## Extension Settings
 
-There are no settings right now... 
+There are no settings right now...
 
 ## Known Issues
 
@@ -31,7 +34,7 @@ all of the time. If you find an issue, please add it to the [issue section](http
 
 ### 0.1.0
 
-Initial release: 
+Initial release:
 - Trial v0.4.0 support
 - Trial download and installer
 - Test discovery
