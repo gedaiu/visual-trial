@@ -36,6 +36,16 @@ all of the time. If you find an issue, please add it to the [issue section](http
 
 ## Release Notes
 
+### 0.2.0
+
+- Trial v0.5.0 support
+- Faster test discovery
+- Run tests from the editor
+- View test output from the editor
+- View test status from the editor
+- Added support for pending tests
+
+
 ### 0.1.0
 
 Initial release:
