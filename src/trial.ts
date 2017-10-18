@@ -140,17 +140,33 @@ export default class Trial {
   }
 
   runTest(subpackage: string, testName: string, callback) : RunTestAction {
-    let action = new RunTestAction(this.localTrialExecutable, this.projectRoot, subpackage, testName, callback);
+    let action = new RunTestAction(this.localTrialExecutable, this.projectRoot, subpackage, testName, (err) => {
+      if(err) {
+        vscode.window.showErrorMessage(err, "Show output").then((value) => {
+          this.output.show();
+        });
+    }
 
-    action.onOutput((text) => {
-      this.output.append(text);
-    });
+    callback(err);
+  });
 
-    return action;
+  action.onOutput((text) => {
+    this.output.append(text);
+  });
+
+  return action;
   }
 
   runAllTests(subpackage: string, callback) : RunTestAction {
-    let action = new RunAllTestsAction(this.localTrialExecutable, this.projectRoot, subpackage, callback);
+    let action = new RunAllTestsAction(this.localTrialExecutable, this.projectRoot, subpackage, (err) => {
+        if(err) {
+            vscode.window.showErrorMessage(err, "Show output").then((value) => {
+              this.output.show();
+            });
+        }
+
+        callback(err);
+    });
 
     action.onOutput((text) => {
       this.output.append(text);

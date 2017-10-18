@@ -3,7 +3,7 @@ import { TrialRootNode } from "./nodes/trialRootNode";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter, Event } from "vscode";
-import { TrialParser } from "./trialParser";
+import { TrialParser } from "./parsers/trialParser";
 import { TestResult, TestState } from "./testResult";
 import Trial from "./trial";
 import ResultManager from './resultManager';
@@ -144,9 +144,7 @@ export class TestRunner {
         });
 
         var action = this.trial.runAllTests(node.subpackage, (err) => {
-            if(err) {
-                vscode.window.showErrorMessage(err);
-            }
+
         });
 
         action.parser.onTestResult((result) => {
