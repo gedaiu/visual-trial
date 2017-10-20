@@ -26,6 +26,22 @@ suite("Dub parsers", () => {
         should(parser.hasLinkerErrors).equal(false);
     });
 
+    test("It should detect compiler errors", () => {
+        var parser = new DubParser();
+
+        parser.setString("Generate main file: /Users/gedaiu/workspace/vibe.d/trial_root.d\n" +
+        "Looking for files inside `vibe-d`\n" +
+        "We will embed the `trial:lifecycle` code inside the project.\n" +
+        "Performing \"unittest-cov\" build using dmd for x86_64.\n" +
+        "vibe-d:mail 0.8.2-alpha.2+commit.1.gb3f5d2a3: building configuration \"library\"...\n" +
+        "web/vibe/web/rest.d(398,1): Err");
+        
+        parser.setString("or: no identifier for declarator unittes\n");
+
+        should(parser.hasCompilerErrors).equal(true);
+        should(parser.hasLinkerErrors).equal(false);
+    });
+
     test("It should detect when there are no compiler errors", () => {
         var parser = new DubParser();
 

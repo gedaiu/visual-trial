@@ -178,6 +178,27 @@ export default class ResultManager {
         });
     }
 
+    setErrors(subpackage?: string) {
+        if(!subpackage) {
+            this.results.forEach((value, key) => {
+                this.removeWaiting(key);
+            });
+
+            return;
+        }
+
+        if (this.results.has(subpackage)) {
+            this.results.get(subpackage).forEach((suite) => {
+                suite.forEach((result, name) => {
+                    if (result.status === TestState.wait) {
+                        result.status = TestState.error;
+                        this.notify(subpackage, result.suite, result.test);
+                    }
+                });
+            });
+        }
+    }
+
     removeWaiting(subpackage?: string) {
         if(!subpackage) {
             this.results.forEach((value, key) => {
@@ -192,6 +213,7 @@ export default class ResultManager {
                 suite.forEach((result, name) => {
                     if (result.status === TestState.wait) {
                         suite.delete(name);
+                        this.notify(subpackage, result.suite, result.test);
                     }
                 });
             });

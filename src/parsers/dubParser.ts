@@ -9,6 +9,7 @@ export class DubParser {
     state: DubState = DubState.compile;
     compileOutput: string = "";
     linkOutput: string = "";
+    rest: string = "";
 
     setData(data: string | Buffer) {
         if(typeof data === "string" || data instanceof String) {
@@ -20,6 +21,14 @@ export class DubParser {
     }
 
     setString(data: string) {
+        data = this.rest + data;
+
+        if(!data.endsWith("\n")) {
+            var pos = data.lastIndexOf("\n");
+            this.rest = data.substr(pos + 1);
+            data = data.substr(0, pos);
+        }
+
         data.split("\n").forEach((line) => {
             if(this.state == DubState.compile && this.hasLinkTokens(line)) {
                 this.state = DubState.link;

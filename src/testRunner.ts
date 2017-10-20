@@ -28,10 +28,6 @@ export class TestRunner {
         this.results.onResult((data) => {
             this._onResult.fire(data);
         });
-
-        this.actions.onEmpty(() => {
-            this.results.removeWaiting();
-        });
     }
 
     subpackages(): Thenable<string[]> {
@@ -91,6 +87,14 @@ export class TestRunner {
         }
     }
 
+    handleTestErrors(err, subpackage?: string) {
+        if(typeof err == "string") {
+            this.results.setErrors(subpackage);
+        } else {
+            this.results.removeWaiting(subpackage);
+        }
+    }
+
     runTest(node: TestCaseTrialNode) {
         var names = this.actions.getNames();
 
@@ -112,7 +116,7 @@ export class TestRunner {
 
         var action = this.trial.runTest(node.subpackage, node.name, (err) => {
             if(err) {
-                vscode.window.showErrorMessage(err);
+                this.handleTestErrors(err, node.subpackage);
             }
         });
 
@@ -144,7 +148,9 @@ export class TestRunner {
         });
 
         var action = this.trial.runAllTests(node.subpackage, (err) => {
-
+            if(err) {
+                this.handleTestErrors(err, node.subpackage);
+            }
         });
 
         action.parser.onTestResult((result) => {
