@@ -36,6 +36,11 @@ all of the time. If you find an issue, please add it to the [issue section](http
 
 ## Release Notes
 
+### 0.3.0
+
+- Compiler errors handling
+
+
 ### 0.2.0
 
 - Trial v0.5.0 support
