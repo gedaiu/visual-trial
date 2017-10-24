@@ -3,7 +3,7 @@ import { TrialRootNode } from "./nodes/trialRootNode";
 import { TestCaseTrialNode } from "./nodes/testCaseTrialNode";
 import { ChildProcess, spawn } from "child_process";
 import { EventEmitter, Event } from "vscode";
-import { TrialParser } from "./trialParser";
+import { TrialParser } from "./parsers/trialParser";
 import { TestResult, TestState } from "./testResult";
 import Trial from "./trial";
 import ResultManager from './resultManager';
@@ -27,10 +27,6 @@ export class TestRunner {
     constructor(private trial: Trial, private actions: ActionCollection) {
         this.results.onResult((data) => {
             this._onResult.fire(data);
-        });
-
-        this.actions.onEmpty(() => {
-            this.results.removeWaiting();
         });
     }
 
@@ -91,6 +87,14 @@ export class TestRunner {
         }
     }
 
+    handleTestErrors(err, subpackage?: string) {
+        if(typeof err == "string") {
+            this.results.setErrors(subpackage);
+        } else {
+            this.results.removeWaiting(subpackage);
+        }
+    }
+
     runTest(node: TestCaseTrialNode) {
         var names = this.actions.getNames();
 
@@ -112,7 +116,7 @@ export class TestRunner {
 
         var action = this.trial.runTest(node.subpackage, node.name, (err) => {
             if(err) {
-                vscode.window.showErrorMessage(err);
+                this.handleTestErrors(err, node.subpackage);
             }
         });
 
@@ -145,7 +149,7 @@ export class TestRunner {
 
         var action = this.trial.runAllTests(node.subpackage, (err) => {
             if(err) {
-                vscode.window.showErrorMessage(err);
+                this.handleTestErrors(err, node.subpackage);
             }
         });
 
