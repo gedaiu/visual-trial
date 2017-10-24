@@ -11,7 +11,7 @@
 
 ## Features
 
-- Trial v0.4.0 support
+- Latest Trial support
 - Trial download and installer
 - Test discovery
 - Jump to test
