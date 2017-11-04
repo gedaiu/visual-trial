@@ -1,8 +1,8 @@
 {
     "name": "visual-trial",
     "displayName": "visual-trial",
-    "description": "Visual Studio Code integration for the Trial test runner.",
-    "version": "0.2.2",
+    "description": "Visual Studio Code integration for the Trial test runner. You can run DLang tests with no setup.",
+    "version": "0.3.0",
     "publisher": "bosz",
     "engines": {
         "vscode": "^1.15.0"
@@ -15,7 +15,8 @@
         "Other"
     ],
     "activationEvents": [
-        "onView:trialTests"
+        "onView:trialTests",
+        "onLanguage:d"
     ],
     "main": "./out/src/extension",
     "contributes": {
