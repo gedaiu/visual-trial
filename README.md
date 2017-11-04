@@ -36,6 +36,10 @@ all of the time. If you find an issue, please add it to the [issue section](http
 
 ## Release Notes
 
+### 0.4.0
+
+- update to handle the new DMD 2.077 mangling
+
 ### 0.3.0
 
 - Compiler errors handling
