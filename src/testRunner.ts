@@ -115,9 +115,7 @@ export class TestRunner {
         });
 
         var action = this.trial.runTest(node.subpackage, node.name, (err) => {
-            if(err) {
-                this.handleTestErrors(err, node.subpackage);
-            }
+            this.handleTestErrors(err, node.subpackage);
         });
 
         action.parser.onTestResult((result) => {
@@ -148,9 +146,7 @@ export class TestRunner {
         });
 
         var action = this.trial.runAllTests(node.subpackage, (err) => {
-            if(err) {
-                this.handleTestErrors(err, node.subpackage);
-            }
+            this.handleTestErrors(err, node.subpackage);
         });
 
         action.parser.onTestResult((result) => {

@@ -69,6 +69,12 @@ export default class ResultManager {
                     if(oldTestName.length == 1) {
                         result.status = oldStatus[oldTestName[0]];
                     }
+                } else if(result.test.indexOf("_d_") != -1) {
+                    var oldTestName = Object.keys(oldStatus).filter(name => name.indexOf(result.test) == 0);
+
+                    if(oldTestName.length == 1) {
+                        result.status = oldStatus[oldTestName[0]];
+                    }
                 }
             }
 

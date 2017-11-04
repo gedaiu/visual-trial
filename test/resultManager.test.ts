@@ -158,4 +158,32 @@ suite("ResultManager", () => {
         should(results.get("")[0].test).equal("__unittestL51");
         should(results.get("")[0].status).equal("success");
     });
+
+    test("It should keep the statues of the __unittest_ names", () => {
+        var manager = new ResultManager();
+
+        manager.cache("", {
+            "gol2": [{
+                "status": "success",
+                "suiteName": "gol2",
+                "name": "trial_discovery_unit_d_1222_4()",
+                "labels": [],
+                "location": { "fileName": "/Users/gedaiu/workspace/GOL/source/gol2.d", "line": 51 }
+            }]
+        });
+
+        manager.updateCache("", {
+            "gol2": [{
+                "suiteName": "gol2",
+                "name": "trial_discovery_unit_d_1222",
+                "labels": [],
+                "location": { "fileName": "/Users/gedaiu/workspace/GOL/source/gol2.d", "line": 51 }
+            }]
+        });
+
+        var results: Map<string, TestResult[]> = manager.getRestultsByFile("/Users/gedaiu/workspace/GOL/source/gol2.d");
+
+        should(results.get("")[0].test).equal("trial_discovery_unit_d_1222");
+        should(results.get("")[0].status).equal("success");
+    });
 });

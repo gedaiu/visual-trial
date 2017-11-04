@@ -12,7 +12,7 @@ import DescribeFileAction from "./actions/describeFileAction";
 
 export default class Trial {
   private output: vscode.OutputChannel;
-  private static version = "0.5.0";
+  private static version = "0.5.2";
 
   constructor(private extensionPath: string, private projectRoot: string) {
     this.output = vscode.window.createOutputChannel("Trial");
