@@ -185,7 +185,7 @@ export default class ResultManager {
     }
 
     setErrors(subpackage?: string) {
-        if(!subpackage) {
+        if(!subpackage && subpackage != "") {
             this.results.forEach((value, key) => {
                 this.removeWaiting(key);
             });
@@ -206,7 +206,7 @@ export default class ResultManager {
     }
 
     removeWaiting(subpackage?: string) {
-        if(!subpackage) {
+        if(!subpackage && subpackage != "") {
             this.results.forEach((value, key) => {
                 this.removeWaiting(key);
             });

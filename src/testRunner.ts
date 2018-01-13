@@ -26,7 +26,9 @@ export class TestRunner {
 
     constructor(private trial: Trial, private actions: ActionCollection) {
         this.results.onResult((data) => {
-            this._onResult.fire(data);
+            var result = this.results.getResult(data[0], data[1], data[2]);
+
+            this._onResult.fire(result);
         });
     }
 
@@ -115,7 +117,9 @@ export class TestRunner {
         });
 
         var action = this.trial.runTest(node.subpackage, node.name, (err) => {
-            this.handleTestErrors(err, node.subpackage);
+            if(err) {
+                this.handleTestErrors(err, node.subpackage);
+            }
         });
 
         action.parser.onTestResult((result) => {

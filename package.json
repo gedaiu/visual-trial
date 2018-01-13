@@ -2,7 +2,7 @@
     "name": "visual-trial",
     "displayName": "visual-trial",
     "description": "Visual Studio Code integration for the Trial test runner. You can run DLang tests with no setup.",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "publisher": "bosz",
     "engines": {
         "vscode": "^1.15.0"
@@ -80,10 +80,10 @@
     "devDependencies": {
         "typescript": "^2.0.3",
         "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "@types/node": "^6.0.40",
+        "mocha": "^4.1.0",
+        "@types/node": "^9.3.0",
         "@types/mocha": "^2.2.32",
-        "should": "^12.0.0"
+        "should": "^13.2.1"
     },
     "dependencies": {
         "yamljs": "^0.3.0"

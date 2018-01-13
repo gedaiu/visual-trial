@@ -12,7 +12,7 @@ import DescribeFileAction from "./actions/describeFileAction";
 
 export default class Trial {
   private output: vscode.OutputChannel;
-  private static version = "0.5.2";
+  private static version = "0.6.0";
 
   constructor(private extensionPath: string, private projectRoot: string) {
     this.output = vscode.window.createOutputChannel("Trial");
@@ -145,16 +145,16 @@ export default class Trial {
         vscode.window.showErrorMessage(err, "Show output").then((value) => {
           this.output.show();
         });
-    }
+      }
 
-    callback(err);
-  });
+      callback(err);
+    });
 
-  action.onOutput((text) => {
-    this.output.append(text);
-  });
+    action.onOutput((text) => {
+      this.output.append(text);
+    });
 
-  return action;
+    return action;
   }
 
   runAllTests(subpackage: string, callback) : RunTestAction {

@@ -33,9 +33,7 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
         testDiagnostics.clear();
     });
 
-    testRunner.onResult((data) => {
-        var result: TestResult = testRunner.results.getResult(data[0], data[1], data[2]);
-
+    testRunner.onResult((result: TestResult) => {
         if(result.status == TestState.failure) {
             testDiagnostics.add(result);
         }
@@ -100,7 +98,6 @@ function initExtension(context: vscode.ExtensionContext, trial: Trial) {
     });
 
     vscode.workspace.onDidSaveTextDocument(e => {
-
         testRunner.refreshFile(e.fileName, (err, subpackage, data) => {
             trialTests.collection.getSuiteNodes(subpackage).forEach(node => {
                 testRunner.results.updateCache(node.subpackage, data);
