@@ -2,7 +2,7 @@
     "name": "visual-trial",
     "displayName": "visual-trial",
     "description": "Visual Studio Code integration for the Trial test runner. You can run DLang tests with no setup.",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "publisher": "bosz",
     "engines": {
         "vscode": "^1.15.0"
