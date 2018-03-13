@@ -62,7 +62,14 @@ export default class Action {
 
     command(name: string, options: string[], workingDir: string, done) {
         this.output("> " + name + " " + options.join(' ') + "\n");
-        this.proc = spawn(name, options, { cwd: workingDir });
+
+        try {
+            this.proc = spawn(name, options, { cwd: workingDir });
+        } catch(err) {
+            this.output(err);
+            done(err);
+            return;
+        }
 
         this.onCancel(() => {
             if(this.proc) {

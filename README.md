@@ -36,6 +36,9 @@ all of the time. If you find an issue, please add it to the [issue section](http
 
 ## Release Notes
 
+### 0.6.0
+- Trial v0.6.2
+
 ### 0.5.0
 - Trial v0.6.0
 - Improved compiler error handling
